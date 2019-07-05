@@ -23,11 +23,13 @@ GetFileList(data_dir,pic_list)
 
 pic_list=[x for x in pic_list if '.jpg' in x or 'png' in x or 'jpeg' in x  ]
 
-random.shuffle(pic_list)
-ratio=0.9
-train_list=pic_list[:int(ratio*len(pic_list))]
-val_list=pic_list[int(ratio*len(pic_list)):]
+# random.shuffle(pic_list)
+# ratio=0.9
+# train_list=pic_list[:int(ratio*len(pic_list))]
+# val_list=pic_list[int(ratio*len(pic_list)):]
 
+train_list=[x for x in pic_list if '300W/' not in x]
+val_list=[x for x in pic_list if '300W/' in x]
 
 train_file=open('./train.txt',mode='w')
 val_file=open('./val.txt',mode='w')

@@ -9,24 +9,11 @@ from train_config import config as cfg
 from net.mobilenet.mobilenet_v2 import mobilenet_v2_035,training_scope
 
 
-def preprocess( image):
 
-    with tf.name_scope('image_preprocess'):
-        if image.dtype.base_dtype != tf.float32:
-            image = tf.cast(image, tf.float32)
-
-        mean = cfg.DATA.PIXEL_MEAN
-        std = np.asarray(cfg.DATA.PIXEL_STD)
-
-        image_mean = tf.constant(mean, dtype=tf.float32)
-        image_invstd = tf.constant(1.0 / std, dtype=tf.float32)
-        image = (image - image_mean) * image_invstd                   ###imagenet preprocess just centered the data
-
-    return image
 
 
 def mobilenet(input, L2_reg, training,trainable=True):
-    input=preprocess(input)
+
     arg_scope = training_scope(weight_decay=L2_reg, is_training=training)
 
     with tf.contrib.slim.arg_scope(arg_scope):

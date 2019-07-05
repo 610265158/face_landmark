@@ -2,16 +2,33 @@
 
 import tensorflow as tf
 import math
+import numpy as np
 from train_config import config as cfg
 
 from net.Resnet import resnet
 from net.shufflenet import shufflenet_v2,shufflenet_v2_FPN
 from net.Mobilenet import mobilenet
-from net.simple_nn import simple_nn
+
+
+def preprocess( image):
+
+    with tf.name_scope('image_preprocess'):
+        if image.dtype.base_dtype != tf.float32:
+            image = tf.cast(image, tf.float32)
+
+        mean = cfg.DATA.PIXEL_MEAN
+        #std = np.asarray(cfg.DATA.PIXEL_STD)
+
+        image_mean = tf.constant(mean, dtype=tf.float32)
+        #image_invstd = tf.constant(1.0 / std, dtype=tf.float32)
+        image = (image - image_mean) #* image_invstd                   ###imagenet preprocess just centered the data
+
+    return image
 
 
 def simple_face(images,labels, L2_reg, training):
-    net_out = mobilenet(images, L2_reg, training)
+    images=preprocess(images)
+    net_out = resnet(images, L2_reg, training)
 
     loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy, \
     reye_cla_accuracy, mouth_cla_accuracy, l2_loss = calculate_loss(net_out, labels)

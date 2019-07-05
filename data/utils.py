@@ -19,10 +19,12 @@ from data.augmentor.augmentation import Pixel_jitter,\
                                         Random_brightness,\
                                         Padding_aug,\
                                         Blur_aug,\
-                                        produce_heat_maps
+                                        produce_heat_maps,\
+                                        Random_saturation
+
 
 from train_config import config as cfg
-from tensorpack.dataflow import BatchData, MultiThreadMapData, PrefetchDataZMQ,DataFromList
+from tensorpack.dataflow import DataFromList
 def balance(anns):
     res_anns=copy.deepcopy(anns)
 
@@ -87,7 +89,7 @@ def get_data_set(root_path,ana_path):
     return dataset
 
 def augmentationCropImage(img, bbox, joints=None,is_training=True):
-    height, width = cfg.MODEL.hin, cfg.MODEL.win
+
     bbox = np.array(bbox).reshape(4, ).astype(np.float32)
     add = max(img.shape[0], img.shape[1])
 
@@ -96,68 +98,42 @@ def augmentationCropImage(img, bbox, joints=None,is_training=True):
     objcenter = np.array([(bbox[0] + bbox[2]) / 2., (bbox[1] + bbox[3]) / 2.])
     bbox += add
     objcenter += add
-    if is_training:
-        joints[:, :2] += add
-        inds = np.where(joints[:, -1] == 0)
-        joints[inds, :2] = -1000000  # avoid influencing by data processing
-    crop_width = (bbox[2] - bbox[0]) * (1 + cfg.DATA.base_extend_range[0] * 2)
-    crop_height = (bbox[3] - bbox[1]) * (1 + cfg.DATA.base_extend_range[1] * 2)
-    if is_training:
-        crop_width = crop_width * (1 + 0.25)
-        crop_height = crop_height * (1 + 0.25)
-    if crop_height / height > crop_width / width:
-        crop_size = crop_height
-        min_shape = height
-    else:
-        crop_size = crop_width
-        min_shape = width
 
-    crop_size = min(crop_size, objcenter[0] / width * min_shape * 2. - 1.)
-    crop_size = min(crop_size, (bimg.shape[1] - objcenter[0]) / width * min_shape * 2. - 1)
-    crop_size = min(crop_size, objcenter[1] / height * min_shape * 2. - 1.)
-    crop_size = min(crop_size, (bimg.shape[0] - objcenter[1]) / height * min_shape * 2. - 1)
+    joints[:, :2] += add
 
-    min_x = int(objcenter[0] - crop_size / 2. / min_shape * width)
-    max_x = int(objcenter[0] + crop_size / 2. / min_shape * width)
-    min_y = int(objcenter[1] - crop_size / 2. / min_shape * height)
-    max_y = int(objcenter[1] + crop_size / 2. / min_shape * height)
+    gt_width=(bbox[2] - bbox[0])
+    gt_height = (bbox[3] - bbox[1])
 
-    x_ratio = float(width) / (max_x - min_x)
-    y_ratio = float(height) / (max_y - min_y)
-
-    if is_training:
-        joints[:, 0] = joints[:, 0] - min_x
-        joints[:, 1] = joints[:, 1] - min_y
-
-        joints[:, 0] *= x_ratio
-        joints[:, 1] *= y_ratio
-
-    img = cv2.resize(bimg[min_y:max_y, min_x:max_x, :], (width, height))
-    details = np.asarray([min_x - add, min_y - add, max_x - add, max_y - add]).astype(np.float)
+    crop_width_half =  gt_width* (1 + cfg.DATA.base_extend_range[0] * 2)//2
+    crop_height_half = gt_height * (1 + cfg.DATA.base_extend_range[1] * 2)//2
 
 
-    height, width = img.shape[0], img.shape[1]
-    center = (width / 2., height / 2.)
-    n = joints.shape[0]
+    min_x = int(objcenter[0] - crop_width_half+\
+                random.uniform(-cfg.DATA.base_extend_range[0],cfg.DATA.base_extend_range[0])*gt_width)
+    max_x = int(objcenter[0] + crop_width_half+\
+                random.uniform(-cfg.DATA.base_extend_range[0],cfg.DATA.base_extend_range[0])*gt_width)
+    min_y = int(objcenter[1] - crop_height_half+\
+                random.uniform(-cfg.DATA.base_extend_range[1],cfg.DATA.base_extend_range[1])*gt_height)
+    max_y = int(objcenter[1] + crop_height_half+\
+                random.uniform(-cfg.DATA.base_extend_range[1],cfg.DATA.base_extend_range[1])*gt_height)
 
-    affrat = random.uniform(cfg.DATA.scale_factor[0], cfg.DATA.scale_factor[1])
 
-    halfl_w = min(width - center[0], (width - center[0]) / 1.25 * affrat)
-    halfl_h = min(height - center[1], (height - center[1]) / 1.25 * affrat)
 
-    interp_methods = [cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_NEAREST, cv2.INTER_LANCZOS4]
-    interp_method = random.choice(interp_methods)
-    img = cv2.resize(img[int(center[1] - halfl_h): int(center[1] + halfl_h + 1),
-                     int(center[0] - halfl_w): int(center[0] + halfl_w + 1)], (width, height),interpolation=interp_method)
+    joints[:, 0] = joints[:, 0] - min_x
+    joints[:, 1] = joints[:, 1] - min_y
 
-    for i in range(n):
-        joints[i][0] = (joints[i][0] - center[0]) / halfl_w * (width - center[0]) + center[0]
-        joints[i][1] = (joints[i][1] - center[1]) / halfl_h * (height - center[1]) + center[1]
+    img=bimg[min_y:max_y,min_x:max_x,:]
 
-    if is_training:
-        return img, joints, details
-    else:
-        return img, details
+    crop_image_height,crop_image_width,_=img.shape
+    joints[:, 0] = joints[:, 0]/crop_image_width
+    joints[:, 1] =  joints[:, 1]/crop_image_height
+
+    img= cv2.resize(img, (cfg.MODEL.win, cfg.MODEL.hin))
+
+    joints[:, 0] = joints[:, 0] *cfg.MODEL.win
+    joints[:, 1] = joints[:, 1]  *cfg.MODEL.hin
+    return img, joints
+
 
 
 def _data_aug_fn(image, ground_truth,is_training=True):
@@ -171,32 +147,32 @@ def _data_aug_fn(image, ground_truth,is_training=True):
     bbox_height=bbox[3]-bbox[1]
     bbox_width = bbox[2] - bbox[0]
 
-    crop_image, label, _=augmentationCropImage(image,bbox,label,True)
+    crop_image, label=augmentationCropImage(image,bbox,label,True)
 
 
     if is_training:
 
-        ###affine_aug
+        if random.uniform(0,1)>0.5:
+            crop_image,label=Mirror(crop_image,label=label,symmetry=cfg.DATA.symmetry)
         if random.uniform(0, 1) > 0.5:
             strength = random.uniform(0, 50)
             crop_image, label = Affine_aug(crop_image, strength=strength, label=label)
         if random.uniform(0, 1) > 0.5:
-            crop_image = Padding_aug(crop_image, 0.4)
+            crop_image = Padding_aug(crop_image, 0.3)
         if random.uniform(0,1)>0.0:
             angle=random.uniform(-45,45)
             crop_image,label=Rotate_aug(crop_image,label=label,angle=angle)
-
-
+        #
+        #
         if random.uniform(0, 1) > 0.5:
             crop_image = Random_brightness(crop_image, bright_shrink=30)
         if random.uniform(0, 1) > 0.5:
             crop_image = Random_contrast(crop_image, [0.5, 1.5])
         if random.uniform(0, 1) > 0.5:
             crop_image = Pixel_jitter(crop_image,15)
+        if random.uniform(0, 1) > 0.5:
+            crop_image = Random_saturation(crop_image, [0.5, 1.5])
 
-        ###mirror
-        if random.uniform(0,1)>0.5:
-            crop_image,label=Mirror(crop_image,label=label,symmetry=cfg.DATA.symmetry)
         
 
         if random.uniform(0,1)>0.5:

@@ -5,28 +5,26 @@ import numpy as np
 from easydict import EasyDict as edict
 
 config = edict()
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 config.TRAIN = edict()
 config.TRAIN.num_gpu = 1
-config.TRAIN.batch_size = 64
+config.TRAIN.batch_size = 32
 config.TRAIN.save_interval = 5000
 config.TRAIN.log_interval = 10
 config.TRAIN.epoch = 2000
-config.TRAIN.train_set_size=673730  ###########u need be sure
-config.TRAIN.val_set_size=70000###50562
+config.TRAIN.train_set_size=1059125  ###########u need be sure
+config.TRAIN.val_set_size=20920###50562
 config.TRAIN.iter_num_per_epoch = config.TRAIN.train_set_size // config.TRAIN.num_gpu // config.TRAIN.batch_size
 
 config.TRAIN.val_iter=config.TRAIN.val_set_size// config.TRAIN.num_gpu // config.TRAIN.batch_size
 
-config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.001,0.0001,0.00001,0.000001]
-config.TRAIN.lr_decay_every_step = [20000,40000,200000,400000,500000]
+config.TRAIN.lr_value_every_step = [0.001,0.0001,0.00001,0.000001]
+config.TRAIN.lr_decay_every_step = [300000,400000,500000]
 config.TRAIN.weight_decay_factor = 1.e-4
 config.TRAIN.train_val_ratio= 0.9
-config.TRAIN.vis=True
+config.TRAIN.vis=False
 
-config.TRAIN.ohem=0.5 ##nouse
-config.TRAIN.dropout=1 #nouse
 config.MODEL = edict()
 config.MODEL.continue_train=False
 config.MODEL.pruning=False
@@ -34,9 +32,8 @@ config.MODEL.model_path = './model/'  # save directory
 config.MODEL.hin = 160  # input size during training , 240
 config.MODEL.win = 160
 config.MODEL.out_channel=136+3+3
-config.MODEL.net_structure='MobilenetV2' ######'InceptionResnetV2,resnet_v2_50
-config.MODEL.pretrained_model=None#'mobilenet_v2_0.35_224.ckpt'
-config.MODEL.sigma=7
+config.MODEL.net_structure='resnet_v2_50' ######'InceptionResnetV2,resnet_v2_50
+config.MODEL.pretrained_model='resnet_v2_50.ckpt'
 
 
 config.DATA = edict()
@@ -50,7 +47,7 @@ config.DATA.PIXEL_MEAN = [123.675, 116.28, 103.53]   ###rgb
 config.DATA.PIXEL_STD = [58.395, 57.12, 57.375]
 
 
-config.DATA.base_extend_range=[0.2,0.3]
+config.DATA.base_extend_range=[0.1,0.2]
 config.DATA.scale_factor=[0.7,1.35]
 config.DATA.symmetry = [(0, 16), (1, 15), (2, 14), (3, 13), (4, 12), (5, 11), (6, 10), (7, 9), (8, 8),
             (17, 26), (18, 25), (19, 24), (20, 23), (21, 22),

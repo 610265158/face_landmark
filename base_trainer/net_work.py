@@ -49,7 +49,7 @@ class trainner():
 
         self.summaries = []
 
-        self.ema_weights = False
+        self.ema_weights = True
 
 
 
@@ -181,11 +181,11 @@ class trainner():
         self.val_map_func=partial(_map_fn,is_training=False)
 
         if is_training:
-            ds = MultiThreadMapData(ds, 5, self.train_map_func, buffer_size=200, strict=True)
+            ds = MultiThreadMapData(ds, 1, self.train_map_func, buffer_size=500, strict=True)
         else:
-            ds = MultiThreadMapData(ds, 5, self.val_map_func, buffer_size=200, strict=True)
+            ds = MultiThreadMapData(ds, 1, self.val_map_func, buffer_size=500, strict=True)
         ds = BatchData(ds, cfg.TRAIN.num_gpu * cfg.TRAIN.batch_size, remainder=True,use_list=False)
-        ds = MultiProcessPrefetchData(ds, 100,2)
+        ds = MultiProcessPrefetchData(ds, 500,4)
         ds.reset_state()
         ds=ds.get_data()
 
@@ -298,7 +298,7 @@ class trainner():
             for var in tf.trainable_variables():
                 summaries.append(tf.summary.histogram(var.op.name, var))
 
-            if False:
+            if self.ema_weights:
                 # Track the moving averages of all trainable variables.
                 variable_averages = tf.train.ExponentialMovingAverage(
                     0.9, global_step)
@@ -313,7 +313,6 @@ class trainner():
                             reye_cla_accuracy, mouth_cla_accuracy, l2_loss, lr]
             self.val_outputs = [total_loss, loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy,
                                 reye_cla_accuracy, mouth_cla_accuracy, l2_loss, lr]
-            # Create a saver.
             # Create a saver.
 
             # Build an initialization operation to run below.
@@ -456,7 +455,7 @@ class trainner():
                                           run_duration))
 
             if self.ite_num % 100 == 0:
-                summary_str = self.sess.run(self.summary_op, feed_dict=feed_dict)
+                summary_str = self._sess.run(self.summary_op, feed_dict=feed_dict)
                 self.summary_writer.add_summary(summary_str, self.ite_num)
     def _val(self,_epoch):
 

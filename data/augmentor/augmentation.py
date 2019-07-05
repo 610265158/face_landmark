@@ -181,12 +181,12 @@ def Padding_aug(src,max_pattern_ratio=0.05):
         if random.uniform(0, 1) > 0.5:
             pattern[0:int(ratio*height),:,:]=0
         else:
-            pattern[-int(ratio * height):-1, :, :] = 0
+            pattern[-int(ratio * height):, :, :] = 0
     else:
         if random.uniform(0, 1) > 0.5:
             pattern[:,0:int(ratio * width), :] = 0
         else:
-            pattern[:,-int(ratio * width):-1,  :] = 0
+            pattern[:,-int(ratio * width):,  :] = 0
 
 
     bias_pattern=(1-pattern)*cfg.DATA.PIXEL_MEAN

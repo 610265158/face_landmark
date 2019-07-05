@@ -18,8 +18,8 @@ class Keypoints:
         with self._graph.as_default():
 
             self._graph, self._sess = init(self._pb_path)
-            self.img_input = tf.get_default_graph().get_tensor_by_name('lztower_0/images:0')
-            self.embeddings_keypoints = tf.get_default_graph().get_tensor_by_name('lztower_0/prediction:0')
+            self.img_input = tf.get_default_graph().get_tensor_by_name('tower_0/images:0')
+            self.embeddings_keypoints = tf.get_default_graph().get_tensor_by_name('tower_0/prediction:0')
             self.training = tf.get_default_graph().get_tensor_by_name('training_flag:0')
 
 
