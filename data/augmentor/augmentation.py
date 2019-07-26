@@ -465,7 +465,7 @@ def produce_heat_maps(label,map_size,stride,sigma):
 
         am = np.amax(heatmap)
         if am > 0:
-            heatmap /= am / 255.
+            heatmap /= am / 10.
 
         return heatmap
     all_keypoints = label

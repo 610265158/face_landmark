@@ -107,16 +107,20 @@ def augmentationCropImage(img, bbox, joints=None,is_training=True):
     crop_width_half =  gt_width* (1 + cfg.DATA.base_extend_range[0] * 2)//2
     crop_height_half = gt_height * (1 + cfg.DATA.base_extend_range[1] * 2)//2
 
-
-    min_x = int(objcenter[0] - crop_width_half+\
-                random.uniform(-cfg.DATA.base_extend_range[0],cfg.DATA.base_extend_range[0])*gt_width)
-    max_x = int(objcenter[0] + crop_width_half+\
-                random.uniform(-cfg.DATA.base_extend_range[0],cfg.DATA.base_extend_range[0])*gt_width)
-    min_y = int(objcenter[1] - crop_height_half+\
-                random.uniform(-cfg.DATA.base_extend_range[1],cfg.DATA.base_extend_range[1])*gt_height)
-    max_y = int(objcenter[1] + crop_height_half+\
-                random.uniform(-cfg.DATA.base_extend_range[1],cfg.DATA.base_extend_range[1])*gt_height)
-
+    if is_training:
+        min_x = int(objcenter[0] - crop_width_half+\
+                    random.uniform(-cfg.DATA.base_extend_range[0],cfg.DATA.base_extend_range[0])*gt_width)
+        max_x = int(objcenter[0] + crop_width_half+\
+                    random.uniform(-cfg.DATA.base_extend_range[0],cfg.DATA.base_extend_range[0])*gt_width)
+        min_y = int(objcenter[1] - crop_height_half+\
+                    random.uniform(-cfg.DATA.base_extend_range[1],cfg.DATA.base_extend_range[1])*gt_height)
+        max_y = int(objcenter[1] + crop_height_half+\
+                    random.uniform(-cfg.DATA.base_extend_range[1],cfg.DATA.base_extend_range[1])*gt_height)
+    else:
+        min_x = int(objcenter[0] - crop_width_half)
+        max_x = int(objcenter[0] + crop_width_half)
+        min_y = int(objcenter[1] - crop_height_half)
+        max_y = int(objcenter[1] + crop_height_half)
 
 
     joints[:, 0] = joints[:, 0] - min_x
@@ -126,7 +130,7 @@ def augmentationCropImage(img, bbox, joints=None,is_training=True):
 
     crop_image_height,crop_image_width,_=img.shape
     joints[:, 0] = joints[:, 0]/crop_image_width
-    joints[:, 1] =  joints[:, 1]/crop_image_height
+    joints[:, 1] = joints[:, 1]/crop_image_height
 
     img= cv2.resize(img, (cfg.MODEL.win, cfg.MODEL.hin))
 
@@ -147,7 +151,7 @@ def _data_aug_fn(image, ground_truth,is_training=True):
     bbox_height=bbox[3]-bbox[1]
     bbox_width = bbox[2] - bbox[0]
 
-    crop_image, label=augmentationCropImage(image,bbox,label,True)
+    crop_image, label=augmentationCropImage(image,bbox,label,is_training)
 
 
     if is_training:
@@ -202,8 +206,10 @@ def _data_aug_fn(image, ground_truth,is_training=True):
     crop_image_height, crop_image_width, _ = crop_image.shape
 
 
-
     label=label.astype(np.float32)
+
+
+    heatmap=produce_heat_maps(label,map_size=(cfg.MODEL.hin,cfg.MODEL.hin),stride=4,sigma=4)
 
     label[:, 0] = label[:, 0]/crop_image_width
     label[:, 1] =  label[:, 1]/crop_image_height
@@ -215,7 +221,7 @@ def _data_aug_fn(image, ground_truth,is_training=True):
     cla_label = cla_label.astype(np.float32)
     label=np.concatenate([label,PRY,cla_label],axis=0)
 
-    return crop_image, label
+    return crop_image, label,heatmap
 
 
 def _map_fn(dp,is_training=True):
@@ -224,8 +230,8 @@ def _map_fn(dp,is_training=True):
     fname, annos = dp
     image = cv2.imread(fname, cv2.IMREAD_COLOR)
     image=cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    image,label=_data_aug_fn(image,annos,is_training)
-    return image, label
+    image,label,heatmap=_data_aug_fn(image,annos,is_training)
+    return image, label,heatmap
 
 
 

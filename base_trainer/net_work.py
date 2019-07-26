@@ -117,7 +117,7 @@ class trainner():
     def add_summary(self, event):
         self.summaries.append(event)
 
-    def tower_loss(self, scope, images, labels, L2_reg, training):
+    def tower_loss(self, scope, images, labels,heatmaps, L2_reg, training):
         """Calculate the total loss on a single tower running the model.
 
         Args:
@@ -132,9 +132,9 @@ class trainner():
         # Build the portion of the Graph calculating the losses. Note that we will
         # assemble the total_loss using a custom function below.
 
-        loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy, \
-        reye_cla_accuracy, mouth_cla_accuracy, l2_loss = simple_face(images, labels, L2_reg,training)
-        return loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy, reye_cla_accuracy, mouth_cla_accuracy, l2_loss
+        loss,heatmap_loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy, \
+        reye_cla_accuracy, mouth_cla_accuracy, l2_loss = simple_face(images, labels,heatmaps, L2_reg,training)
+        return loss, heatmap_loss,leye_loss, reye_loss, mouth_loss, leye_cla_accuracy, reye_cla_accuracy, mouth_cla_accuracy, l2_loss
 
     def average_gradients(self,tower_grads):
         """Calculate the average gradient for each shared variable across all towers.
@@ -181,11 +181,11 @@ class trainner():
         self.val_map_func=partial(_map_fn,is_training=False)
 
         if is_training:
-            ds = MultiThreadMapData(ds, 1, self.train_map_func, buffer_size=500, strict=True)
+            ds = MultiThreadMapData(ds, 5, self.train_map_func, buffer_size=100)
         else:
-            ds = MultiThreadMapData(ds, 1, self.val_map_func, buffer_size=500, strict=True)
-        ds = BatchData(ds, cfg.TRAIN.num_gpu * cfg.TRAIN.batch_size, remainder=True,use_list=False)
-        ds = MultiProcessPrefetchData(ds, 500,4)
+            ds = MultiThreadMapData(ds, 5, self.val_map_func, buffer_size=100)
+        ds = BatchData(ds, cfg.TRAIN.num_gpu * cfg.TRAIN.batch_size)
+        ds = MultiProcessPrefetchData(ds, 500,2)
         ds.reset_state()
         ds=ds.get_data()
 
@@ -219,10 +219,9 @@ class trainner():
 
             images_place_holder_list = []
             labels_place_holder_list = []
-
+            heatmaps_place_holder_list = []
             # Create an optimizer that performs gradient descent.
-            # opt = tf.train.AdamOptimizer(lr)
-            opt = tf.train.MomentumOptimizer(lr, momentum=0.9, use_nesterov=False)
+
             # Get images and labels
 
             weights_initializer = slim.xavier_initializer()
@@ -240,10 +239,10 @@ class trainner():
                                 images_ = tf.placeholder(tf.float32, [None, cfg.MODEL.hin, cfg.MODEL.win, 3],
                                                          name="images")
                                 labels_ = tf.placeholder(tf.float32, [None, cfg.MODEL.out_channel], name="labels")
-
+                                heatmaps_ = tf.placeholder(tf.float32, [None, cfg.MODEL.hin//4, cfg.MODEL.win//4, 68], name="labels")
                                 images_place_holder_list.append(images_)
                                 labels_place_holder_list.append(labels_)
-
+                                heatmaps_place_holder_list.append(heatmaps_)
                                 with slim.arg_scope([slim.conv2d, slim.conv2d_in_plane, \
                                                      slim.conv2d_transpose, slim.separable_conv2d,
                                                      slim.fully_connected],
@@ -251,14 +250,16 @@ class trainner():
                                                     biases_regularizer=biases_regularizer,
                                                     weights_initializer=weights_initializer,
                                                     biases_initializer=biases_initializer):
-                                    loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy, reye_cla_accuracy, mouth_cla_accuracy, l2_loss = self.tower_loss(
-                                        scope, images_, labels_, L2_reg, training)
+                                    loss,heatmap_loss, leye_loss, reye_loss, mouth_loss, \
+                                    leye_cla_accuracy, reye_cla_accuracy, mouth_cla_accuracy, \
+                                    l2_loss = self.tower_loss(
+                                        scope, images_, labels_,heatmaps_, L2_reg, training)
 
                                     ##use muti gpu ,large batch
                                     if i == cfg.TRAIN.num_gpu - 1:
-                                        total_loss = tf.add_n([loss, leye_loss, reye_loss, mouth_loss, l2_loss])
+                                        total_loss = tf.add_n([loss,heatmap_loss, leye_loss, reye_loss, mouth_loss, l2_loss])
                                     else:
-                                        total_loss = tf.add_n([loss, leye_loss, reye_loss, mouth_loss])
+                                        total_loss = tf.add_n([loss,heatmap_loss, leye_loss, reye_loss, mouth_loss])
 
                                 # Reuse variables for the next tower.
                                 tf.get_variable_scope().reuse_variables()
@@ -308,10 +309,10 @@ class trainner():
             else:
                 train_op = tf.group(apply_gradient_op, *bn_update_ops)
 
-            self.inputs = [images_place_holder_list, labels_place_holder_list, L2_reg, training]
-            self.outputs = [train_op, total_loss, loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy,
+            self.inputs = [images_place_holder_list, labels_place_holder_list,heatmaps_place_holder_list, L2_reg, training]
+            self.outputs = [train_op, total_loss, loss,heatmap_loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy,
                             reye_cla_accuracy, mouth_cla_accuracy, l2_loss, lr]
-            self.val_outputs = [total_loss, loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy,
+            self.val_outputs = [total_loss, loss,heatmap_loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy,
                                 reye_cla_accuracy, mouth_cla_accuracy, l2_loss, lr]
             # Create a saver.
 
@@ -371,14 +372,14 @@ class trainner():
             self.ite_num += 1
             start_time = time.time()
 
-            example_images, example_labels = next(self.train_ds)
+            example_images, example_labels,example_heatmaps = next(self.train_ds)
 
             ########show_flag check the data
             if cfg.TRAIN.vis:
                 for i in range(cfg.TRAIN.batch_size):
                     example_image = example_images[i, :, :, :]/255.
                     example_label = example_labels[i,:]
-
+                    example_heatmap=example_heatmaps[i, :, :, :]
 
                     Landmark=example_label[0:136]
                     cla=example_label[136:]
@@ -392,6 +393,8 @@ class trainner():
                     for _index in range(Landmark.shape[0]):
                         x_y = Landmark[_index]
                         cv2.circle(example_image, center=(int(x_y[0]*_w), int(x_y[1]*_w)), color=(122, 122, 122), radius=1, thickness=1)
+                        cv2.imshow('tp', example_heatmap[:,:,_index].astype(np.uint8))
+                        cv2.waitKey(0)
                     # cv2.putText(img_show, 'left_eye:open', (xmax, ymin),
                     #             cv2.FONT_HERSHEY_SIMPLEX, 1,
                     #             (255, 0, 255), 2)
@@ -406,10 +409,10 @@ class trainner():
             for n in range(cfg.TRAIN.num_gpu):
                 feed_dict[self.inputs[0][n]] = example_images[n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size, :,:,:]
                 feed_dict[self.inputs[1][n]] = example_labels[n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size,:]
-
-            feed_dict[self.inputs[2]] = cfg.TRAIN.weight_decay_factor
-            feed_dict[self.inputs[3]] = True
-            _, total_loss_value, loss_value, leye_loss_value, reye_loss_value, mouth_loss_value,\
+                feed_dict[self.inputs[2][n]] = example_heatmaps[n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size, :,:,:]
+            feed_dict[self.inputs[3]] = cfg.TRAIN.weight_decay_factor
+            feed_dict[self.inputs[4]] = True
+            _, total_loss_value, loss_value,heatmap_loss_value, leye_loss_value, reye_loss_value, mouth_loss_value,\
             leye_cla_accuracy_value,reye_cla_accuracy_value,mouth_cla_accuracy_value,l2_loss_value, learn_rate, = \
                 self._sess.run([*self.outputs],
                          feed_dict=feed_dict)
@@ -426,6 +429,7 @@ class trainner():
                 format_str = ('epoch %d: iter %d, '
                               'total_loss=%.6f '
                               'loss=%.6f '
+                              'heatmap_loss=%.6f '
                               'leye_loss=%.6f '
                               'reye_loss=%.6f '
                               'mouth_loss=%.6f '
@@ -441,6 +445,7 @@ class trainner():
                                           self.ite_num,
                                           total_loss_value,
                                           loss_value,
+                                          heatmap_loss_value,
                                           leye_loss_value,
                                           reye_loss_value,
                                           mouth_loss_value,
@@ -463,16 +468,17 @@ class trainner():
         all_total_loss=0
         for step in range(cfg.TRAIN.val_iter):
 
-            example_images, example_labels = next(self.val_ds)  # 在会话中取出image和label
+            example_images, example_labels,example_heatmaps = next(self.val_ds)  # 在会话中取出image和label
 
             feed_dict = {}
             for n in range(cfg.TRAIN.num_gpu):
                 feed_dict[self.inputs[0][n]] = example_images[n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size, :,:,:]
                 feed_dict[self.inputs[1][n]] = example_labels[n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size, :]
-
-            feed_dict[self.inputs[2]] = 0.
-            feed_dict[self.inputs[3]] = False
-            total_loss_value, loss_value, leye_loss_value, reye_loss_value, mouth_loss_value, \
+                feed_dict[self.inputs[2][n]] = example_heatmaps[n * cfg.TRAIN.batch_size:(n + 1) * cfg.TRAIN.batch_size, :,
+                                           :, :]
+            feed_dict[self.inputs[3]] = 0.
+            feed_dict[self.inputs[4]] = False
+            total_loss_value, loss_value,heatmap_loss_value, leye_loss_value, reye_loss_value, mouth_loss_value, \
             leye_cla_accuracy_value, reye_cla_accuracy_value, mouth_cla_accuracy_value, l2_loss_value, learn_rate = \
                 self._sess.run([*self.val_outputs],
                               feed_dict=feed_dict)

@@ -1,6 +1,8 @@
 # -*-coding:utf-8-*-
 
 import tensorflow as tf
+import tensorflow.contrib.slim as slim
+
 import math
 import numpy as np
 from train_config import config as cfg
@@ -8,7 +10,7 @@ from train_config import config as cfg
 from net.Resnet import resnet
 from net.shufflenet import shufflenet_v2,shufflenet_v2_FPN
 from net.Mobilenet import mobilenet
-
+from net.resnet.resnet_v2 import resnet_v2_50,resnet_arg_scope
 
 def preprocess( image):
 
@@ -17,31 +19,59 @@ def preprocess( image):
             image = tf.cast(image, tf.float32)
 
         mean = cfg.DATA.PIXEL_MEAN
-        #std = np.asarray(cfg.DATA.PIXEL_STD)
 
         image_mean = tf.constant(mean, dtype=tf.float32)
-        #image_invstd = tf.constant(1.0 / std, dtype=tf.float32)
-        image = (image - image_mean) #* image_invstd                   ###imagenet preprocess just centered the data
+
+        image = image - image_mean###imagenet preprocess just centered the data
 
     return image
 
 
-def simple_face(images,labels, L2_reg, training):
+def simple_face(images,labels,heatmaps, L2_reg, training):
     images=preprocess(images)
-    net_out = resnet(images, L2_reg, training)
+    arg_scope = resnet_arg_scope(weight_decay=L2_reg)
+    with slim.arg_scope(arg_scope):
+        with slim.arg_scope([slim.batch_norm], is_training=training):
+            net_out,end_points = resnet(images, L2_reg, training)
 
-    loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy, \
+            # for k, v in end_points.items():
+            #     print(k, v)
+
+            heat_fm1=end_points['resnet_v2_50/block2']
+            heat_fm2 = end_points['resnet_v2_50/block4']
+            heatmap_out1=_heatmap_branch(heat_fm1,2,'heatmaps1')
+            heatmap_out2= _heatmap_branch(heat_fm2, 3, 'heatmaps2')
+    net_out = tf.identity(net_out, name='prediction')
+    heatmap_out1 = tf.identity(heatmap_out1, name='hprediction1')
+    heatmap_out2 = tf.identity(heatmap_out2, name='hprediction2')
+
+    heatmap_loss1=_mse(heatmap_out1,heatmaps,)
+    heatmap_loss2 = _mse(heatmap_out2, heatmaps)
+
+    heatmap_loss=heatmap_loss1+heatmap_loss2
+
+
+
+
+
+    regression_loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy, \
     reye_cla_accuracy, mouth_cla_accuracy, l2_loss = calculate_loss(net_out, labels)
 
-    return  loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy, \
+    return regression_loss,heatmap_loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy, \
     reye_cla_accuracy, mouth_cla_accuracy, l2_loss
 
 
 
 
+def _heatmap_branch(fm,repeat=2,scope='heatmaps'):
 
+    with tf.variable_scope(scope):
+        for i in range(repeat):
+            fm = slim.conv2d_transpose(fm, 256, [3, 3],stride=2,  scope='deconv%d'%i)
+        net = slim.conv2d(fm, 68, [1, 1], activation_fn=None,
+                          normalizer_fn=None, scope='%soutput'%scope)
 
-
+    return net
 
 
 def _wing_loss(landmarks, labels, w=10.0, epsilon=2.0):
@@ -67,7 +97,8 @@ def _wing_loss(landmarks, labels, w=10.0, epsilon=2.0):
 
 
 def _mse(landmarks, labels):
-    return tf.reduce_mean(tf.square(landmarks - labels)) / 2.
+
+    return tf.reduce_mean(0.5*tf.square(landmarks - labels))
 
 
 def l1(landmarks, labels):
@@ -75,61 +106,32 @@ def l1(landmarks, labels):
 
 
 def calculate_loss(predict, labels):
-    landmark_label_reshaped = tf.reshape(labels[:, 0:136], [cfg.TRAIN.batch_size, 68, 2])
+    landmark_label = labels[:, 0:136]
     pose_label = labels[:, 136:139]
-    # landmark_label = labels[:, 0:132]
     leye_cla_label = labels[:, 139]
     reye_cla_label = labels[:, 140]
     mouth_cla_label = labels[:, 141]
-    landmark_predict_reshaped = tf.reshape(predict[:, 0:136], [cfg.TRAIN.batch_size, 68, 2])
-    # landmark_predict = predict[:, 0:132]
+
+    landmark_predict = predict[:, 0:136]
     pose_predict = predict[:, 136:139]
     leye_cla_predict = predict[:, 139]
     reye_cla_predict = predict[:, 140]
     mouth_cla_predict = predict[:, 141]
 
-    face_boundary_label = tf.reshape(landmark_label_reshaped[:, 0:17, :], [cfg.TRAIN.batch_size, -1])
-    l_eye_bow_label = tf.reshape(landmark_label_reshaped[:, 17:22, :], [cfg.TRAIN.batch_size, -1])
-    r_eye_bow_label = tf.reshape(landmark_label_reshaped[:, 22:27, :], [cfg.TRAIN.batch_size, -1])
-    nose_label = tf.reshape(landmark_label_reshaped[:, 27:36, :], [cfg.TRAIN.batch_size, -1])
-    l_eye_label = tf.reshape(landmark_label_reshaped[:, 36:42, :], [cfg.TRAIN.batch_size, -1])
-    r_eye_label = tf.reshape(landmark_label_reshaped[:, 42:48, :], [cfg.TRAIN.batch_size, -1])
-    mouth_label = tf.reshape(landmark_label_reshaped[:, 48:, :], [cfg.TRAIN.batch_size, -1])
 
-    face_boundary_predict = tf.reshape(landmark_predict_reshaped[:, 0:17, :], [cfg.TRAIN.batch_size, -1])
-    l_eye_bow_predict = tf.reshape(landmark_predict_reshaped[:, 17:22, :], [cfg.TRAIN.batch_size, -1])
-    r_eye_bow_predict = tf.reshape(landmark_predict_reshaped[:, 22:27, :], [cfg.TRAIN.batch_size, -1])
-    nose_predict = tf.reshape(landmark_predict_reshaped[:, 27:36, :], [cfg.TRAIN.batch_size, -1])
-    l_eye_predict = tf.reshape(landmark_predict_reshaped[:, 36:42, :], [cfg.TRAIN.batch_size, -1])
-    r_eye_predict = tf.reshape(landmark_predict_reshaped[:, 42:48, :], [cfg.TRAIN.batch_size, -1])
-    mouth_predict = tf.reshape(landmark_predict_reshaped[:, 48:, :], [cfg.TRAIN.batch_size, -1])
+    loss = _wing_loss(landmark_predict, landmark_label)
 
+    loss_pose = _mse(pose_predict, pose_label)
+
+    loss=loss_pose+loss
+
+    leye_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=leye_cla_predict,
+                                                                      labels=leye_cla_label))
+    reye_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=reye_cla_predict,
+                                                                      labels=reye_cla_label))
+    mouth_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=mouth_cla_predict,
+                                                                       labels=mouth_cla_label))
     ###make crosssentropy
-    loss_1 = _wing_loss(face_boundary_predict, face_boundary_label)
-    loss_2 = _wing_loss(l_eye_bow_predict, l_eye_bow_label)
-    loss_3 = _wing_loss(r_eye_bow_predict, r_eye_bow_label)
-    loss_4 = _wing_loss(nose_predict, nose_label)
-    loss_5 = _wing_loss(l_eye_predict, l_eye_label)
-    loss_6 = _wing_loss(r_eye_predict, r_eye_label)
-    loss_7 = _wing_loss(mouth_predict, mouth_label)
-
-    loss_8 = _mse(pose_predict, pose_label)
-    # loss_1=_wing_loss(landmark_predict,landmark_label)/cfg.TRAIN.batch_size
-    # tf.add_to_collection('%smutiloss'%scope,tf.summary.scalar('face_boundary_loss', loss_1))
-    # tf.add_to_collection('%smutiloss'%scope, tf.summary.scalar('l_eye_bow_loss', loss_2))
-    # tf.add_to_collection('%smutiloss'%scope, tf.summary.scalar('r_eye_bow_loss', loss_3))
-    # tf.add_to_collection('%smutiloss'%scope, tf.summary.scalar('nose_loss', loss_4))
-    # tf.add_to_collection('%smutiloss'%scope, tf.summary.scalar('l_eye_loss', loss_5))
-    # tf.add_to_collection('%smutiloss'%scope, tf.summary.scalar('r_eye_loss', loss_6))
-    # tf.add_to_collection('%smutiloss'%scope, tf.summary.scalar('mouth_loss', loss_7))
-
-    leye_loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(logits=leye_cla_predict,
-                                                                      labels=leye_cla_label)) / cfg.TRAIN.batch_size / 2.
-    reye_loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(logits=reye_cla_predict,
-                                                                      labels=reye_cla_label)) / cfg.TRAIN.batch_size / 2.
-    mouth_loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(logits=mouth_cla_predict,
-                                                                       labels=mouth_cla_label)) / cfg.TRAIN.batch_size / 2.
-
     leye_cla_correct_prediction = tf.equal(
         tf.cast(tf.greater_equal(tf.nn.sigmoid(leye_cla_predict), 0.5), tf.int32),
         tf.cast(leye_cla_label, tf.int32))
@@ -144,7 +146,6 @@ def calculate_loss(predict, labels):
         tf.cast(mouth_cla_label, tf.int32))
     mouth_cla_accuracy = tf.reduce_mean(tf.cast(mouth_cla_correct_prediction, tf.float32))
 
-    loss = loss_1 + loss_2 + loss_3 + loss_4 + loss_5 + loss_6 + loss_7 + loss_8
 
     regularization_losses = tf.add_n(tf.get_collection(tf.GraphKeys.REGULARIZATION_LOSSES), name='l2_loss')
 

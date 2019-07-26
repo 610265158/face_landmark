@@ -9,6 +9,7 @@ def resnet(input, L2_reg, training,trainable=True):
 
     arg_scope = resnet_arg_scope(weight_decay=L2_reg)
     with slim.arg_scope(arg_scope):
+
         net, end_points = resnet_v2_50(input, is_training=training, global_pool=False, num_classes=None)
 
         net = tf.reduce_mean(net, [1, 2], name='pool5', keep_dims=True)
@@ -17,6 +18,6 @@ def resnet(input, L2_reg, training,trainable=True):
 
         net_out = tf.squeeze(net, [1, 2], name='SpatialSqueeze')
 
-    net_out = tf.identity(net_out, name='prediction')
-    return net_out
+
+    return net_out,end_points
 

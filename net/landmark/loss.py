@@ -53,7 +53,7 @@ def calculate_loss(predict,labels,scope):
     ###make crosssentropy
     loss_1 = _wing_loss(landmark_predict, landmark_label)
 
-    loss_2 = _mse(pose_predict, pose_label)
+    loss_2 = _wing_loss(pose_predict, pose_label)
 
     leye_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=leye_cla_predict,
                                                                        labels=leye_cla_label))
