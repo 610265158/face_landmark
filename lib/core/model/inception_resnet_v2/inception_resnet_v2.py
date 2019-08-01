@@ -239,7 +239,7 @@ def inception_resnet_v2_base(inputs,
       if add_and_check_final('PreAuxLogits', net): return net, end_points
 
       if output_stride == 8:
-        # TODO(gpapan): Properly support output_stride for the rest of the net.
+        # TODO(gpapan): Properly support output_stride for the rest of the model.
         raise ValueError('output_stride==8 is only supported up to the '
                          'PreAuxlogits end_point for now.')
 
@@ -304,7 +304,7 @@ def inception_resnet_v2(inputs, num_classes=1001, is_training=True,
     create_aux_logits: Whether to include the auxilliary logits.
     activation_fn: Activation function for conv2d.
   Returns:
-    net: the output of the logits layer (if num_classes is a non-zero integer),
+    model: the output of the logits layer (if num_classes is a non-zero integer),
       or the non-dropped-out input to the logits layer (if num_classes is 0 or
       None).
     end_points: the set of end_points from the inception model.

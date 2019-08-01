@@ -2,8 +2,7 @@
 import tensorflow as tf
 import cv2
 import numpy as np
-from helper.init import init
-from data.utils import _data_aug_fn
+from lib.helper.init import init
 from train_config import config
 class Keypoints:
 

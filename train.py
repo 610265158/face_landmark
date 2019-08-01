@@ -1,4 +1,4 @@
-from base_trainer.net_work import trainner
+from lib.core.base_trainer.net_work import trainner
 
 import setproctitle
 setproctitle.setproctitle("face*_*_")

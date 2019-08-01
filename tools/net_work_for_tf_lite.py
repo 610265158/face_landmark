@@ -2,7 +2,7 @@
 
 
 import sys
-import os
+
 sys.path.append('.')
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
@@ -13,11 +13,8 @@ from train_config import config as cfg
 
 
 from net.landmark.loss import calculate_loss
-from net.Resnet import resnet
-from net.shufflenet import shufflenet_v2,shufflenet_v2_FPN
-from net.Mobilenet import mobilenet
-from net.simple_nn import simple_nn
-from helper.logger import logger
+from lib.core.model.Mobilenet import mobilenet
+from lib.helper import logger
 
 
 

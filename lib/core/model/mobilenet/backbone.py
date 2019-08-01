@@ -1,10 +1,9 @@
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
-from functools import partial
 
 from train_config import config as cfg
 
-from net.mobilenet.mobilenet_v2 import mobilenet_v2_035,training_scope
+from lib.core.model.mobilenet import mobilenet_v2_035,training_scope
 from net.resnet.basemodel import resnet_arg_scope
 
 def mobilenet_ssd(image,L2_reg,is_training=True,data_format='NHWC'):
@@ -29,10 +28,10 @@ def mobilenet_ssd(image,L2_reg,is_training=True,data_format='NHWC'):
     with slim.arg_scope(resnet_arg_scope(weight_decay=L2_reg, bn_is_training=is_training, bn_trainable=True,
                                          data_format=data_format)):
 
-        # net = block(resnet_fms[-1], num_units=2, out_channels=512, scope='extra_Stage1')
-        # resnet_fms.append(net)
-        # net = block(net, num_units=2, out_channels=512, scope='extra_Stage2')
-        # resnet_fms.append(net)
+        # model = block(resnet_fms[-1], num_units=2, out_channels=512, scope='extra_Stage1')
+        # resnet_fms.append(model)
+        # model = block(model, num_units=2, out_channels=512, scope='extra_Stage2')
+        # resnet_fms.append(model)
         net = slim.conv2d(mobilebet_fms[-1], 128, [1, 1], stride=1, activation_fn=tf.nn.relu, scope='extra_conv_1_1')
         net = slim.conv2d(net, 256, [3, 3], stride=2, activation_fn=tf.nn.relu, scope='extra_conv_1_2')
         mobilebet_fms.append(net)

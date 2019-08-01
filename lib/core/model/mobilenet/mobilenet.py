@@ -155,7 +155,7 @@ def mobilenet_base(  # pylint: disable=invalid-name
      logits, endpoints = mobilenet_base(...)
   Args:
     inputs: a tensor of shape [batch_size, height, width, channels].
-    conv_defs: A list of op(...) layers specifying the net architecture.
+    conv_defs: A list of op(...) layers specifying the model architecture.
     multiplier: Float multiplier for the depth (number of channels)
       for all convolution ops. The value must be greater than zero. Typical
       usage will be to set this value in (0, 1) to reduce the number of

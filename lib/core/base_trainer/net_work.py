@@ -12,22 +12,18 @@ from functools import partial
 from tensorpack.dataflow import BatchData, MultiThreadMapData,MultiProcessPrefetchData
 
 from train_config import config as cfg
-from data.utils import get_data_set,_map_fn
+from lib.dataset.dataietr import FaceKeypointDataIter
 
-from net.landmark import simple_face
+from lib.core.model.simpleface import simple_face
 
-from helper.logger import logger
+from lib.helper.logger import logger
 
 
 class trainner():
     def __init__(self):
-        self.train_data_set=get_data_set(cfg.DATA.root_path,cfg.DATA.train_txt_path)
-        self.val_data_set = get_data_set(cfg.DATA.root_path,cfg.DATA.val_txt_path)
+        self.train_ds=FaceKeypointDataIter(cfg.DATA.root_path,cfg.DATA.train_txt_path,True)
+        self.val_ds = FaceKeypointDataIter(cfg.DATA.root_path,cfg.DATA.val_txt_path,False)
 
-
-
-        self.train_ds = self.make_data(self.train_data_set, is_training=True)
-        self.val_ds = self.make_data(self.val_data_set, is_training=False)
 
         self.inputs=[]
         self.outputs=[]
@@ -175,35 +171,7 @@ class trainner():
             grad_and_var = (grad, v)
             average_grads.append(grad_and_var)
         return average_grads
-    def make_data(self, ds,is_training=True):
-        ####train and val aug func
-        self.train_map_func=partial(_map_fn,is_training=True)
-        self.val_map_func=partial(_map_fn,is_training=False)
 
-        if is_training:
-            ds = MultiThreadMapData(ds, 5, self.train_map_func, buffer_size=100)
-        else:
-            ds = MultiThreadMapData(ds, 5, self.val_map_func, buffer_size=100)
-        ds = BatchData(ds, cfg.TRAIN.num_gpu * cfg.TRAIN.batch_size)
-        ds = MultiProcessPrefetchData(ds, 500,2)
-        ds.reset_state()
-        ds=ds.get_data()
-
-        ###########
-        # ds = data_set.shuffle(buffer_size=512)  # shuffle before loading images
-        # ds = ds.repeat(cfg.TRAIN.epoch)
-        # if is_training:
-        #     ds = ds.map(self.train_map_func, num_parallel_calls=multiprocessing.cpu_count())  # decouple the heavy map_fn
-        # else:
-        #     ds = ds.map(self.val_map_func, num_parallel_calls=multiprocessing.cpu_count())  # decouple the heavy map_fn
-        # ds = ds.batch(
-        #     cfg.TRAIN.num_gpu * cfg.TRAIN.batch_size)  # TODO: consider using tf.contrib.map_and_batch
-        #
-        # ds = ds.prefetch(5 * cfg.TRAIN.num_gpu)
-        # iterator = ds.make_one_shot_iterator()
-        # one_element = iterator.get_next()
-        # images, labels = one_element
-        return ds
 
     def build(self):
         with self._graph.as_default(), tf.device('/cpu:0'):
@@ -402,7 +370,6 @@ class trainner():
                     cv2.imshow('img', example_image)
                     cv2.waitKey(0)
 
-            time.sleep(0.01)
             fetch_duration = time.time() - start_time
 
             feed_dict = {}

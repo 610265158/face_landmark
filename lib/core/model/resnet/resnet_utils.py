@@ -73,12 +73,12 @@ def conv2d_same(inputs, num_outputs, kernel_size, stride, rate=1, scope=None):
   When stride > 1, then we do explicit zero-padding, followed by conv2d with
   'VALID' padding.
   Note that
-     net = conv2d_same(inputs, num_outputs, 3, stride=stride)
+     model = conv2d_same(inputs, num_outputs, 3, stride=stride)
   is equivalent to
-     net = slim.conv2d(inputs, num_outputs, 3, stride=1, padding='SAME')
-     net = subsample(net, factor=stride)
+     model = slim.conv2d(inputs, num_outputs, 3, stride=1, padding='SAME')
+     model = subsample(model, factor=stride)
   whereas
-     net = slim.conv2d(inputs, num_outputs, 3, stride=stride, padding='SAME')
+     model = slim.conv2d(inputs, num_outputs, 3, stride=stride, padding='SAME')
   is different when the input's height or width is even, which is why we add the
   current function. For more details, see ResnetUtilsTest.testConv2DSameEven().
   Args:
@@ -142,7 +142,7 @@ def stack_blocks_dense(net, blocks, output_stride=None,
       at the last unit of each block.
     outputs_collections: Collection to add the ResNet block outputs.
   Returns:
-    net: Output tensor with stride equal to the specified output_stride.
+    model: Output tensor with stride equal to the specified output_stride.
   Raises:
     ValueError: If the target output_stride is not valid.
   """

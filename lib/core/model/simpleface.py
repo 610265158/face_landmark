@@ -4,13 +4,10 @@ import tensorflow as tf
 import tensorflow.contrib.slim as slim
 
 import math
-import numpy as np
 from train_config import config as cfg
 
-from net.Resnet import resnet
-from net.shufflenet import shufflenet_v2,shufflenet_v2_FPN
-from net.Mobilenet import mobilenet
-from net.resnet.resnet_v2 import resnet_v2_50,resnet_arg_scope
+
+from lib.core.model.resnet.resnet_v2 import resnet_arg_scope,resnet_v2_50
 
 def preprocess( image):
 
@@ -32,27 +29,31 @@ def simple_face(images,labels,heatmaps, L2_reg, training):
     arg_scope = resnet_arg_scope(weight_decay=L2_reg)
     with slim.arg_scope(arg_scope):
         with slim.arg_scope([slim.batch_norm], is_training=training):
-            net_out,end_points = resnet(images, L2_reg, training)
+            net, end_points = resnet_v2_50(images, is_training=training, global_pool=False, num_classes=None)
 
-            # for k, v in end_points.items():
-            #     print(k, v)
+            for k, v in end_points.items():
+                print(k, v)
 
-            heat_fm1=end_points['resnet_v2_50/block2']
-            heat_fm2 = end_points['resnet_v2_50/block4']
-            heatmap_out1=_heatmap_branch(heat_fm1,2,'heatmaps1')
-            heatmap_out2= _heatmap_branch(heat_fm2, 3, 'heatmaps2')
+
+
+            net = tf.reduce_mean(net, [1, 2], name='pool5', keep_dims=True)
+            net = slim.conv2d(net, cfg.MODEL.out_channel, [1, 1], activation_fn=None,
+                              normalizer_fn=None, scope='logits')
+            net_out = tf.squeeze(net, [1, 2], name='SpatialSqueeze')
+
+
+
+
+            heat_fm1 = end_points['resnet_v2_50/block4']
+            heatmap_out1=_heatmap_branch(heat_fm1,3,'heatmaps1')
+
     net_out = tf.identity(net_out, name='prediction')
     heatmap_out1 = tf.identity(heatmap_out1, name='hprediction1')
-    heatmap_out2 = tf.identity(heatmap_out2, name='hprediction2')
-
-    heatmap_loss1=_mse(heatmap_out1,heatmaps,)
-    heatmap_loss2 = _mse(heatmap_out2, heatmaps)
-
-    heatmap_loss=heatmap_loss1+heatmap_loss2
 
 
+    heatmap_loss1=_mse(heatmap_out1,heatmaps)
 
-
+    heatmap_loss=heatmap_loss1/10.
 
     regression_loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy, \
     reye_cla_accuracy, mouth_cla_accuracy, l2_loss = calculate_loss(net_out, labels)

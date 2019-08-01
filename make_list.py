@@ -1,8 +1,9 @@
 import os
 import random
-
-
-
+from scipy.io import loadmat
+import numpy as np
+import cv2
+import traceback
 def GetFileList(dir, fileList):
     newDir = dir
     if os.path.isfile(dir):
@@ -15,8 +16,10 @@ def GetFileList(dir, fileList):
             newDir=os.path.join(dir,s)
             GetFileList(newDir, fileList)
     return fileList
-data_dir='/media/lz/73abf007-eec4-4097-9344-48d64dc62346/coco_data/facelandmark/PUB'
 
+
+###process 300W
+data_dir='/media/lz/73abf007-eec4-4097-9344-48d64dc62346/coco_data/facelandmark/PUB'
 
 pic_list=[]
 GetFileList(data_dir,pic_list)
@@ -44,13 +47,20 @@ for pic in train_list:
         try:
             with open(pts) as p_f:
                 labels=p_f.readlines()[3:-1]
+
+            _labels=[]
             for _one_p in labels:
                 xy = _one_p.rstrip().split(' ')
-                tmp_str = tmp_str + xy[0] + ' ' + xy[1] + ' '
+                xy=[float(_) for _ in xy]
+                _labels.append(xy)
+                tmp_str = tmp_str + str(xy[0] )+ ' ' + str(xy[1]) + ' '
+            _labels=np.array(_labels)
+            box=[np.min(_labels[:,0]),np.min(_labels[:,1]),np.max(_labels[:,0]),np.max(_labels[:,1])]
+            tmp_str = tmp_str + '|'+str(box[0])+' '+str(box[1])+' '+str(box[2])+' '+str(box[3])+' -1'
             tmp_str = tmp_str + '\n'
             train_file.write(tmp_str)
         except:
-            print(pic)
+            traceback.print_exc()
 
 
 for pic in val_list:
@@ -60,11 +70,22 @@ for pic in val_list:
     if os.access(pic,os.F_OK) and  os.access(pts,os.F_OK):
         try:
             with open(pts) as p_f:
-                labels=p_f.readlines()[3:-1]
+                labels = p_f.readlines()[3:-1]
+
+            _labels = []
             for _one_p in labels:
                 xy = _one_p.rstrip().split(' ')
-                tmp_str = tmp_str + xy[0] + ' ' + xy[1] + ' '
+                xy = [float(_) for _ in xy]
+                _labels.append(xy)
+                tmp_str = tmp_str + str(xy[0]) + ' ' + str(xy[1]) + ' '
+            _labels = np.array(_labels)
+            box = [np.min(_labels[:, 0]), np.min(_labels[:, 1]), np.max(_labels[:, 0]), np.max(_labels[:, 1])]
+            tmp_str = tmp_str + '|' + str(box[0]) + ' ' + str(box[1]) + ' ' + str(box[2]) + ' ' + str(box[3]) + ' -1'
             tmp_str = tmp_str + '\n'
             val_file.write(tmp_str)
         except:
-            print(pic)
+            traceback.print_exc()
+
+
+
+

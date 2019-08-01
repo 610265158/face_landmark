@@ -8,6 +8,14 @@ config = edict()
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 config.TRAIN = edict()
+#### below are params for dataiter
+config.TRAIN.thread_num = 1
+config.TRAIN.process_num = 2
+config.TRAIN.buffer_size = 100
+config.TRAIN.prefetch_size = 100
+############
+
+
 config.TRAIN.num_gpu = 1
 config.TRAIN.batch_size = 32
 config.TRAIN.save_interval = 5000
@@ -20,7 +28,7 @@ config.TRAIN.iter_num_per_epoch = config.TRAIN.train_set_size // config.TRAIN.nu
 config.TRAIN.val_iter=config.TRAIN.val_set_size// config.TRAIN.num_gpu // config.TRAIN.batch_size
 
 config.TRAIN.lr_value_every_step = [0.001,0.0001,0.00001,0.000001]
-config.TRAIN.lr_decay_every_step = [1000000,200000,300000]
+config.TRAIN.lr_decay_every_step = [600000,800000,1000000]
 config.TRAIN.weight_decay_factor = 1.e-4
 config.TRAIN.train_val_ratio= 0.9
 config.TRAIN.vis=False

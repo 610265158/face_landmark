@@ -3,7 +3,7 @@ import tensorflow as tf
 import tensorflow.contrib.slim as slim
 from train_config import config as cfg
 
-from net.resnet.resnet_v2 import resnet_arg_scope
+from lib.core.model.resnet.resnet_v2 import resnet_arg_scope
 
 
 
@@ -135,7 +135,7 @@ def shufflenet_v2(inputs,L2_reg,training=True):
                 net = slim.conv2d(inputs, 24, [3, 3],stride=2, activation_fn=tf.nn.relu,
                                   normalizer_fn=slim.batch_norm, scope='init_conv')
 
-                #net = tf.nn.max_pool(net, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME", name='pool1')
+                #model = tf.nn.max_pool(model, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME", name='pool1')
                 net = slim.separable_conv2d(net, 24, [3, 3], stride=2, activation_fn=tf.nn.relu,
                                           normalizer_fn=slim.batch_norm, scope='init_conv_2', depth_multiplier=1)
                 print('first conv shape', net.shape)
@@ -173,7 +173,7 @@ def shufflenet_v2_FPN(inputs,L2_reg,training=True):
 
                 net = slim.conv2d(inputs, 24, [3, 3],stride=2, activation_fn=tf.nn.relu,
                                   normalizer_fn=slim.batch_norm, scope='init_conv')
-                #net = tf.nn.max_pool(net, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME", name='pool1')
+                #model = tf.nn.max_pool(model, ksize=[1, 3, 3, 1], strides=[1, 2, 2, 1], padding="SAME", name='pool1')
                 net = slim.separable_conv2d(net, 24, [3, 3], stride=2, activation_fn=tf.nn.relu,
                                           normalizer_fn=slim.batch_norm, scope='init_conv_2', depth_multiplier=1)
                 print('init conv shape', net.shape)

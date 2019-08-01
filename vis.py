@@ -1,6 +1,6 @@
 from data.utils import get_train_data_list,_data_aug_fn
 from train_config import config
-from api.keypoint import Keypoints
+from lib.core.api import Keypoints
 import numpy as np
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
@@ -9,7 +9,7 @@ import cv2
 
 val_data_list=get_train_data_list(config.DATA.root_path,config.DATA.val_txt_path)
 
-face=Keypoints('./model/landmark.pb')
+face=Keypoints('./model/loss.pb')
 for one_ele in val_data_list:
 
     img=cv2.imread(one_ele[0])
