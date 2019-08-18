@@ -10,7 +10,7 @@ it is simple and flexible.
 
 pretrained model can be download from
 
-+ 1 [baidudisk](https://pan.baidu.com/s/1NRneEVvfYRiTmgOD8_T-KA) (code hg7w)
++ [baidudisk](https://pan.baidu.com/s/1NRneEVvfYRiTmgOD8_T-KA) (code hg7w)
 
 
 ## requirment
