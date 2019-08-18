@@ -101,6 +101,8 @@ then, run:
 
 
 ### convert model
+After training, convert to pb file and visualization.
+
 run `python tools/auto_freeze.py` produce keypoint.pb
 
 
@@ -112,8 +114,8 @@ python vis.py
 ```
 
 TODO: 
-A face detector is needed.
-pruning
+A face detector is needed.     [dsfd_tensorflow](https://github.com/610265158/DSFD-tensorflow)
+pruning               
 
 
 
