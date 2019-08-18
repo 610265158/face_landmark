@@ -9,7 +9,8 @@ it is simple and flexible.
 ![samples2](https://github.com/610265158/face_landmark/blob/master/figures/tmp_screenshot_18.08.20192.png)
 
 pretrained model can be download from
-[baidudisk](https://pan.baidu.com/s/1NRneEVvfYRiTmgOD8_T-KA) (code hg7w)
+
++ 1 [baidudisk](https://pan.baidu.com/s/1NRneEVvfYRiTmgOD8_T-KA) (code hg7w)
 
 
 ## requirment
