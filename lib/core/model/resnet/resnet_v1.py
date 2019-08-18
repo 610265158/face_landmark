@@ -49,7 +49,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 
-from net import resnet_utils
+from lib.core.model.resnet import resnet_utils
 
 
 resnet_arg_scope = resnet_utils.resnet_arg_scope
@@ -250,12 +250,12 @@ def resnet_v1_block(scope, base_depth, num_units, stride):
   return resnet_utils.Block(scope, bottleneck, [{
       'depth': base_depth * 4,
       'depth_bottleneck': base_depth,
-      'stride': 1
-  }] * (num_units - 1) + [{
+      'stride': stride
+  }]  + [{
       'depth': base_depth * 4,
       'depth_bottleneck': base_depth,
-      'stride': stride
-  }])
+      'stride': 1
+  }]* (num_units - 1))
 
 
 def resnet_v1_50(inputs,
@@ -269,10 +269,10 @@ def resnet_v1_50(inputs,
                  scope='resnet_v1_50'):
   """ResNet-50 model of [1]. See resnet_v1() for arg and return description."""
   blocks = [
-      resnet_v1_block('block1', base_depth=64, num_units=3, stride=2),
+      resnet_v1_block('block1', base_depth=64, num_units=3, stride=1),
       resnet_v1_block('block2', base_depth=128, num_units=4, stride=2),
       resnet_v1_block('block3', base_depth=256, num_units=6, stride=2),
-      resnet_v1_block('block4', base_depth=512, num_units=3, stride=1),
+      resnet_v1_block('block4', base_depth=512, num_units=3, stride=2),
   ]
   return resnet_v1(inputs, blocks, num_classes, is_training,
                    global_pool=global_pool, output_stride=output_stride,
@@ -293,10 +293,10 @@ def resnet_v1_101(inputs,
                   scope='resnet_v1_101'):
   """ResNet-101 model of [1]. See resnet_v1() for arg and return description."""
   blocks = [
-      resnet_v1_block('block1', base_depth=64, num_units=3, stride=2),
+      resnet_v1_block('block1', base_depth=64, num_units=3, stride=1),
       resnet_v1_block('block2', base_depth=128, num_units=4, stride=2),
       resnet_v1_block('block3', base_depth=256, num_units=23, stride=2),
-      resnet_v1_block('block4', base_depth=512, num_units=3, stride=1),
+      resnet_v1_block('block4', base_depth=512, num_units=3, stride=2),
   ]
   return resnet_v1(inputs, blocks, num_classes, is_training,
                    global_pool=global_pool, output_stride=output_stride,

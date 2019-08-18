@@ -1,8 +1,10 @@
-
+import sys
+sys.path.append('.')
 import os
 import tensorflow as tf
+from train_config import config as cfg
+model_folder = cfg.MODEL.model_path
 
-model_folder = './model'
 checkpoint = tf.train.get_checkpoint_state(model_folder)
 
 ##input_checkpoint
@@ -14,7 +16,7 @@ input_meta_graph = input_checkpoint + '.meta'
 output_node_names='tower_0/images,tower_0/prediction,training_flag'
 
 #output_graph
-output_graph='./model/loss.pb'
+output_graph='./model/keypoint.pb'
 
 
 print('excuted')

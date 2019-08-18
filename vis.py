@@ -1,28 +1,29 @@
-from data.utils import get_train_data_list,_data_aug_fn
+from lib.dataset.dataietr import FaceKeypointDataIter
 from train_config import config
-from lib.core.api import Keypoints
+from lib.core.api.keypoint import Keypoints
 import numpy as np
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 import cv2
+from train_config import config as cfg
+cfg.TRAIN.batch_size=1
 
-val_data_list=get_train_data_list(config.DATA.root_path,config.DATA.val_txt_path)
+val_ds = FaceKeypointDataIter(cfg.DATA.root_path,cfg.DATA.val_txt_path,False)
 
-face=Keypoints('./model/loss.pb')
-for one_ele in val_data_list:
+face=Keypoints('./model/keypoint.pb')
 
-    img=cv2.imread(one_ele[0])
-    img=cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    crop_img,_label,_heatmaps=_data_aug_fn(img,one_ele[1],False)
 
-    img_show=crop_img.copy()
+for one_ele,_, in val_ds:
+    print(_)
 
-    res=face.simple_run(crop_img)
-    print(res)
+    img_show=np.array(one_ele[0])
+    res=face.simple_run(one_ele[0])
+    #print(res)
     res=res[0][:136].reshape((-1,2))
     img_show=img_show.astype(np.uint8)
 
+    img_show=cv2.cvtColor(img_show, cv2.COLOR_BGR2RGB)
 
     for _index in range(res.shape[0]):
         x_y = res[_index]

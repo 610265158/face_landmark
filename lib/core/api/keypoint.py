@@ -2,6 +2,8 @@
 import tensorflow as tf
 import cv2
 import numpy as np
+import time
+
 from lib.helper.init import init
 from train_config import config
 class Keypoints:
@@ -27,9 +29,12 @@ class Keypoints:
         with self._graph.as_default():
             img=np.expand_dims(img,axis=0)
 
-            [landmarkers] = self._sess.run([self.embeddings_keypoints], \
-                                                    feed_dict={self.img_input: img, \
+            star=time.time()
+            for i in range(10):
+                [landmarkers] = self._sess.run([self.embeddings_keypoints], \
+                                                        feed_dict={self.img_input: img, \
                                                                self.training: False})
+            print((time.time()-star)/10)
         return landmarkers
     def run(self,_img,_bboxs):
         img_batch = []
@@ -75,5 +80,4 @@ class Keypoints:
         crop_image = bimg[bbox[1]:bbox[3], bbox[0]:bbox[2], :]
         crop_image = cv2.resize(crop_image, (config.MODEL.hin, config.MODEL.win),
                                   interpolation=cv2.INTER_AREA)
-        crop_image/=255.
         return crop_image

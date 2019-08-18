@@ -2,24 +2,19 @@
 A simple face aligment method
 
 
-
-
-# simple pose estimation
-
-
 ## introduction
 A simple face aligment method based on tensorflow. 
 it is simple and flexible.
+![samples](图片地址)
 
-
-the evaluation results are based on resnet with batchsize(1x64),pretrained model can be download from
-https://pan.baidu.com/s/1cUqnf9BwUVkCy0iT6EczKA ( password ty4d )
+pretrained model can be download from
+[baidudisk](https://pan.baidu.com/s/1NRneEVvfYRiTmgOD8_T-KA) (code hg7w)
 
 
 
 ## requirment
 
-+ tensorflow1.12
++ tensorflow1.12    (tensorflow1.14 if mix_precision turns on)
 
 + tensorpack (for data provider)
 
@@ -34,11 +29,34 @@ https://pan.baidu.com/s/1cUqnf9BwUVkCy0iT6EczKA ( password ty4d )
 
 ### train
 
-1. download all the 300W data set including the 300VW(unzip as images)
+1. download all the 300W data set including the 300VW(parse as images, and make the label the same formate as 300W)
+```
+├── 300VW
+│   ├── 001_annot
+│       ....
+├── 300W
+│   ├── 01_Indoor
+│   └── 02_Outdoor
+├── AFW
+│   └── afw
+├── HELEN
+│   ├── testset
+│   └── trainset
+├── IBUG
+│   └── ibug
+├── LFPW
+│   ├── testset
+│   └── trainset
+```
 
-3. but if u want to train from scratch set config.MODEL.pretrained_model=None,
+2. run ` python make_list.py` produce train.txt and val.txt
+(if u like train u own data, u should prepare the data like this:
+`****.jpg| x1 y1 x2 y2 x3 y3...` 
+3. download the imagenet pretrained resnet_v1_50 model from [resnet50](http://download.tensorflow.org/models/resnet_v1_50_2016_08_28.tar.gz)
+release it in the root dir,
+4. but if u want to train from scratch set config.MODEL.pretrained_model=None,
 
-4. if recover from a completly pretrained model  set config.MODEL.pretrained_model='yourmodel.ckpt',config.MODEL.continue_train=True
+5. if recover from a completly pretrained model  set config.MODEL.pretrained_model='yourmodel.ckpt',config.MODEL.continue_train=True
 
 then, run:
 
@@ -78,23 +96,10 @@ then, run:
 ```
 
 
-### evaluation
 
-when u get a trained model, run 
-```
-python tools/auto_freeze.py
-```
-it will produce detector.pb in ./model
+### convert model
+run `python tools/auto_freeze.py` produce keypoint.pb
 
-then run
-```
-python model_eval/eval_by_gt.py
-
-```
-
-
-
-```
 
 ### visualization
 
@@ -103,14 +108,9 @@ python vis.py
 
 ```
 
-TODO A face detector is needed.
+TODO: 
+A face detector is needed.
+pruning
 
 
-### pruning
-
-after get a trained model, run 
-``` python pruning/filter_model.py``` 
-then produce a pruning.npz file, change config.MODEL.pretrained_model='pruning.npz'
-
-and modify the net structure in net,
 

@@ -7,7 +7,7 @@ import math
 from train_config import config as cfg
 
 
-from lib.core.model.resnet.resnet_v2 import resnet_arg_scope,resnet_v2_50
+from lib.core.model.resnet.resnet_v1 import resnet_arg_scope,resnet_v1_50
 
 def preprocess( image):
 
@@ -24,16 +24,15 @@ def preprocess( image):
     return image
 
 
-def simple_face(images,labels,heatmaps, L2_reg, training):
+def simple_face(images,labels, L2_reg, training):
     images=preprocess(images)
     arg_scope = resnet_arg_scope(weight_decay=L2_reg)
     with slim.arg_scope(arg_scope):
         with slim.arg_scope([slim.batch_norm], is_training=training):
-            net, end_points = resnet_v2_50(images, is_training=training, global_pool=False, num_classes=None)
+            net, end_points = resnet_v1_50(images, is_training=training, global_pool=False, num_classes=None)
 
             for k, v in end_points.items():
                 print(k, v)
-
 
 
             net = tf.reduce_mean(net, [1, 2], name='pool5', keep_dims=True)
@@ -42,23 +41,13 @@ def simple_face(images,labels,heatmaps, L2_reg, training):
             net_out = tf.squeeze(net, [1, 2], name='SpatialSqueeze')
 
 
-
-
-            heat_fm1 = end_points['resnet_v2_50/block4']
-            heatmap_out1=_heatmap_branch(heat_fm1,3,'heatmaps1')
-
     net_out = tf.identity(net_out, name='prediction')
-    heatmap_out1 = tf.identity(heatmap_out1, name='hprediction1')
 
-
-    heatmap_loss1=_mse(heatmap_out1,heatmaps)
-
-    heatmap_loss=heatmap_loss1/10.
 
     regression_loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy, \
     reye_cla_accuracy, mouth_cla_accuracy, l2_loss = calculate_loss(net_out, labels)
 
-    return regression_loss,heatmap_loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy, \
+    return regression_loss, leye_loss, reye_loss, mouth_loss, leye_cla_accuracy, \
     reye_cla_accuracy, mouth_cla_accuracy, l2_loss
 
 

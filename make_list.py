@@ -1,38 +1,35 @@
 import os
 import random
-from scipy.io import loadmat
-import numpy as np
-import cv2
-import traceback
+
+
+
 def GetFileList(dir, fileList):
     newDir = dir
     if os.path.isfile(dir):
         fileList.append(dir)
     elif os.path.isdir(dir):
         for s in os.listdir(dir):
-            #如果需要忽略某些文件夹，使用以下代码
+
             # if s == "pts":
             #     continue
             newDir=os.path.join(dir,s)
             GetFileList(newDir, fileList)
     return fileList
+data_dir='./data'      ########points to your director
 
-
-###process 300W
-data_dir='/media/lz/73abf007-eec4-4097-9344-48d64dc62346/coco_data/facelandmark/PUB'
 
 pic_list=[]
 GetFileList(data_dir,pic_list)
 
 pic_list=[x for x in pic_list if '.jpg' in x or 'png' in x or 'jpeg' in x  ]
 
-# random.shuffle(pic_list)
-# ratio=0.9
-# train_list=pic_list[:int(ratio*len(pic_list))]
-# val_list=pic_list[int(ratio*len(pic_list)):]
+random.shuffle(pic_list)
+ratio=0.9
+train_list=pic_list[:int(ratio*len(pic_list))]
+val_list=pic_list[int(ratio*len(pic_list)):]
 
-train_list=[x for x in pic_list if '300W/' not in x]
-val_list=[x for x in pic_list if '300W/' in x]
+# train_list=[x for x in pic_list if '300W/' not in x]
+# val_list=[x for x in pic_list if '300W/' in x]
 
 train_file=open('./train.txt',mode='w')
 val_file=open('./val.txt',mode='w')
@@ -47,20 +44,13 @@ for pic in train_list:
         try:
             with open(pts) as p_f:
                 labels=p_f.readlines()[3:-1]
-
-            _labels=[]
             for _one_p in labels:
                 xy = _one_p.rstrip().split(' ')
-                xy=[float(_) for _ in xy]
-                _labels.append(xy)
-                tmp_str = tmp_str + str(xy[0] )+ ' ' + str(xy[1]) + ' '
-            _labels=np.array(_labels)
-            box=[np.min(_labels[:,0]),np.min(_labels[:,1]),np.max(_labels[:,0]),np.max(_labels[:,1])]
-            tmp_str = tmp_str + '|'+str(box[0])+' '+str(box[1])+' '+str(box[2])+' '+str(box[3])+' -1'
+                tmp_str = tmp_str + xy[0] + ' ' + xy[1] + ' '
             tmp_str = tmp_str + '\n'
             train_file.write(tmp_str)
         except:
-            traceback.print_exc()
+            print(pic)
 
 
 for pic in val_list:
@@ -70,22 +60,11 @@ for pic in val_list:
     if os.access(pic,os.F_OK) and  os.access(pts,os.F_OK):
         try:
             with open(pts) as p_f:
-                labels = p_f.readlines()[3:-1]
-
-            _labels = []
+                labels=p_f.readlines()[3:-1]
             for _one_p in labels:
                 xy = _one_p.rstrip().split(' ')
-                xy = [float(_) for _ in xy]
-                _labels.append(xy)
-                tmp_str = tmp_str + str(xy[0]) + ' ' + str(xy[1]) + ' '
-            _labels = np.array(_labels)
-            box = [np.min(_labels[:, 0]), np.min(_labels[:, 1]), np.max(_labels[:, 0]), np.max(_labels[:, 1])]
-            tmp_str = tmp_str + '|' + str(box[0]) + ' ' + str(box[1]) + ' ' + str(box[2]) + ' ' + str(box[3]) + ' -1'
+                tmp_str = tmp_str + xy[0] + ' ' + xy[1] + ' '
             tmp_str = tmp_str + '\n'
             val_file.write(tmp_str)
         except:
-            traceback.print_exc()
-
-
-
-
+            print(pic)

@@ -12,7 +12,6 @@ import math
 from train_config import config as cfg
 
 
-from net.landmark.loss import calculate_loss
 from lib.core.model.Mobilenet import mobilenet
 from lib.helper import logger
 

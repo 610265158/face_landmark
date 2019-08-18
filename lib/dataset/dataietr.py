@@ -14,16 +14,13 @@ from tensorpack.dataflow import DataFromList
 from tensorpack.dataflow import BatchData, MultiThreadMapData, MultiProcessPrefetchData
 
 
-from lib.dataset.augmentor.augmentation import Pixel_jitter,\
-                                        Rotate_aug,\
+from lib.dataset.augmentor.augmentation import Rotate_aug,\
                                         Affine_aug,\
                                         Mirror,\
-                                        Random_contrast,\
-                                        Random_brightness,\
                                         Padding_aug,\
-                                        Blur_aug,\
-                                        produce_heat_maps,\
-                                        Random_saturation
+                                        produce_heat_maps
+
+from lib.dataset.augmentor.visual_augmentation import ColorDistort
 from lib.dataset.headpose import get_head_pose
 from train_config import config as cfg
 
@@ -44,14 +41,11 @@ class data_info(object):
         for line in txt_lines:
             line=line.rstrip()
 
+            _img_path=line.rsplit('|',1)[0]
+            _label=line.rsplit('|',1)[-1]
 
-
-            splits=line.split('|')
-            _img_path=splits[0]
-            _label_points=splits[1]
-            _label_sex = splits[2]
             current_img_path=os.path.join(self.root_path,_img_path)
-            current_img_label=[_label_points,_label_sex]
+            current_img_label=_label
             self.metas.append([current_img_path,current_img_label])
 
             ###some change can be made here
@@ -116,18 +110,20 @@ class BaseDataIter():
 
 
 class FaceKeypointDataIter(BaseDataIter):
+    def __init__(self, img_root_path='', ann_file=None, training_flag=True):
+
+        self.color_augmentor = ColorDistort()
+
+        ###init the base class at last !!
+        super(FaceKeypointDataIter, self).__init__(img_root_path, ann_file, training_flag)
 
     def balance(self,anns):
         res_anns = copy.deepcopy(anns)
 
         lar_count = 0
         for ann in anns:
-            label = ann[1][0]
-
-            label=label.split(' ')
-            label= [float(_) for _ in label if _ is not '']
-
-            label = np.array(label).reshape((-1, 2))
+            label = ann[-1]
+            label = np.array([label.split(' ')], dtype=np.float).reshape((-1, 2))
             bbox = np.array([np.min(label[:, 0]), np.min(label[:, 1]), np.max(label[:, 0]), np.max(label[:, 1])])
             bbox_width = bbox[2] - bbox[0]
             bbox_height = bbox[3] - bbox[1]
@@ -179,8 +175,8 @@ class FaceKeypointDataIter(BaseDataIter):
 
         ann_info = data_info(im_root_path, ann_file)
         all_samples = ann_info.get_all_sample()
-        balanced_samples = self.balance(all_samples)
-        return balanced_samples
+        #balanced_samples = self.balance(all_samples)
+        return all_samples
 
     def augmentationCropImage(self,img, bbox, joints=None, is_training=True):
 
@@ -225,7 +221,12 @@ class FaceKeypointDataIter(BaseDataIter):
         joints[:, 0] = joints[:, 0] / crop_image_width
         joints[:, 1] = joints[:, 1] / crop_image_height
 
-        img = cv2.resize(img, (cfg.MODEL.win, cfg.MODEL.hin))
+
+        interp_methods = [cv2.INTER_LINEAR, cv2.INTER_CUBIC, cv2.INTER_AREA, cv2.INTER_NEAREST,
+                          cv2.INTER_LANCZOS4]
+        interp_method = random.choice(interp_methods)
+
+        img = cv2.resize(img, (cfg.MODEL.win, cfg.MODEL.hin),interpolation=interp_method)
 
         joints[:, 0] = joints[:, 0] * cfg.MODEL.win
         joints[:, 1] = joints[:, 1] * cfg.MODEL.hin
@@ -237,19 +238,13 @@ class FaceKeypointDataIter(BaseDataIter):
         image = cv2.imread(fname, cv2.IMREAD_COLOR)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
+        label = np.array([ann.split(' ')], dtype=np.float).reshape((-1, 2))
 
-        points_label = ann[0]
-        label = points_label.split(' ')
-        label = [float(_) for _ in label if _ is not '']
-
-        box_and_gender = ann[1].split(' ')
-        box_and_gender= [float(_) for _ in box_and_gender if _ is not '']
-
-        label = np.array(label, dtype=np.float).reshape((-1, 2))
-
-        bbox = box_and_gender[0:4]
+        bbox = np.array([np.min(label[:, 0]), np.min(label[:, 1]), np.max(label[:, 0]), np.max(label[:, 1])])
         bbox_height = bbox[3] - bbox[1]
         bbox_width = bbox[2] - bbox[0]
+
+
 
         crop_image, label = self.augmentationCropImage(image, bbox, label, is_training)
 
@@ -268,19 +263,7 @@ class FaceKeypointDataIter(BaseDataIter):
             #
             #
             if random.uniform(0, 1) > 0.5:
-                crop_image = Random_brightness(crop_image, bright_shrink=30)
-            if random.uniform(0, 1) > 0.5:
-                crop_image = Random_contrast(crop_image, [0.5, 1.5])
-            if random.uniform(0, 1) > 0.5:
-                crop_image = Pixel_jitter(crop_image, 15)
-            if random.uniform(0, 1) > 0.5:
-                crop_image = Random_saturation(crop_image, [0.5, 1.5])
-
-            if random.uniform(0, 1) > 0.5:
-                a = [3, 5, 7, 9]
-                k = random.sample(a, 1)[0]
-                crop_image = Blur_aug(crop_image, ksize=(k, k))
-
+                crop_image=self.color_augmentor(crop_image)
         #######head pose
         reprojectdst, euler_angle = get_head_pose(label, crop_image)
         PRY = euler_angle.reshape([-1]).astype(np.float32) / 90.
@@ -306,7 +289,6 @@ class FaceKeypointDataIter(BaseDataIter):
 
         label = label.astype(np.float32)
 
-        heatmap = produce_heat_maps(label, map_size=(cfg.MODEL.hin, cfg.MODEL.hin), stride=4, sigma=4)
 
         label[:, 0] = label[:, 0] / crop_image_width
         label[:, 1] = label[:, 1] / crop_image_height
@@ -317,4 +299,4 @@ class FaceKeypointDataIter(BaseDataIter):
         cla_label = cla_label.astype(np.float32)
         label = np.concatenate([label, PRY, cla_label], axis=0)
 
-        return crop_image, label, heatmap
+        return crop_image, label,
