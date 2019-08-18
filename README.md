@@ -5,11 +5,11 @@ A simple face aligment method
 ## introduction
 A simple face aligment method based on tensorflow. 
 it is simple and flexible.
-![samples](图片地址)
+![samples1](https://github.com/610265158/face_landmark/blob/master/figures/tmp_screenshot_18.08.2019.png)
+![samples2](https://github.com/610265158/face_landmark/blob/master/figures/tmp_screenshot_18.08.20192.png)
 
 pretrained model can be download from
 [baidudisk](https://pan.baidu.com/s/1NRneEVvfYRiTmgOD8_T-KA) (code hg7w)
-
 
 
 ## requirment
@@ -23,9 +23,7 @@ pretrained model can be download from
 + python 3.6
 
 
-
 ## useage
-
 
 ### train
 
@@ -33,6 +31,7 @@ pretrained model can be download from
 ```
 ├── 300VW
 │   ├── 001_annot
+│   ├── 002_annot
 │       ....
 ├── 300W
 │   ├── 01_Indoor
@@ -52,8 +51,10 @@ pretrained model can be download from
 2. run ` python make_list.py` produce train.txt and val.txt
 (if u like train u own data, u should prepare the data like this:
 `****.jpg| x1 y1 x2 y2 x3 y3...` 
+
 3. download the imagenet pretrained resnet_v1_50 model from [resnet50](http://download.tensorflow.org/models/resnet_v1_50_2016_08_28.tar.gz)
-release it in the root dir,
+release it in the root dir
+
 4. but if u want to train from scratch set config.MODEL.pretrained_model=None,
 
 5. if recover from a completly pretrained model  set config.MODEL.pretrained_model='yourmodel.ckpt',config.MODEL.continue_train=True
