@@ -10,7 +10,7 @@ demo pictures:
 ![samples](https://github.com/610265158/face_landmark/blob/master/figures/tmp_screenshot_18.08.20192.png)
 
 demo gif
-<iframe height=500 width=500 src="https://github.com/610265158/face_landmark/blob/master/figures/yang.gif">
+![samples2](https://github.com/610265158/face_landmark/blob/master/figures/yang.gif)
 pretrained model can be download from
 
 + [baidudisk](https://pan.baidu.com/s/1NRneEVvfYRiTmgOD8_T-KA) (code hg7w)
