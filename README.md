@@ -5,6 +5,8 @@ A simple face aligment method
 ## introduction
 A simple face aligment method based on tensorflow. 
 it is simple and flexible, trained with wingloss and multi task.
+
+demo pictures:
 ![samples](https://github.com/610265158/face_landmark/blob/master/figures/tmp_screenshot_18.08.20192.png)
 
 pretrained model can be download from
