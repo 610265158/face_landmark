@@ -11,7 +11,10 @@ Contact me if u have problem about it. 2120140200@mail.nankai.edu.cn :)
 demo pictures:
 ![samples](https://github.com/610265158/face_landmark/blob/master/figures/tmp_screenshot_18.08.20192.png)
 
-pretrained model will be released soon
+pretrained model:
+
++ [baidudisk](https://pan.baidu.com/s/1jPW9cq9V9sJDrcrtcqpmLQ)  (code wd5g)
++ [googledrive](https://drive.google.com/drive/folders/1YHtaLkalAqURbkIYYJBLf6HJZzd6vzOG?usp=sharing)
 
 
 ## requirment
