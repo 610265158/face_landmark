@@ -16,7 +16,7 @@ input_meta_graph = input_checkpoint + '.meta'
 output_node_names='tower_0/images,tower_0/prediction,training_flag'
 
 #output_graph
-output_graph='./model/keypoint.pb'
+output_graph='./model/keypoints.pb'
 
 
 print('excuted')
