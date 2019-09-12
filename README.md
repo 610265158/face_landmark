@@ -18,7 +18,7 @@ demo pictures:
 
 ![gifs](https://github.com/610265158/Peppa_Pig_Face_Engine/blob/master/figure/sample.gif)
 
-this gif is from github.com/610265158/Peppa_Pig_Face_Engine, but its the same model : )
+this gif is from github.com/610265158/Peppa_Pig_Face_Engine, but it is the same model : )
 
 pretrained model:
 
