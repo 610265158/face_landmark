@@ -103,7 +103,7 @@ python vis.py
           [pappa_pig_face_engine](github.com/610265158/Peppa_Pig_Face_Engine)
 
 
-- []  2.pruning               
+- [ ]  2.pruning               
         train with resnet, then pruning, it should be better.
 
 
