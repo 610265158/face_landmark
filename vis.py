@@ -11,7 +11,7 @@ cfg.TRAIN.batch_size=1
 
 val_ds = FaceKeypointDataIter(cfg.DATA.root_path,cfg.DATA.val_txt_path,False)
 
-face=Keypoints('./model/keypoint.pb')
+face=Keypoints('./model/keypoints.pb')
 
 
 for one_ele,_, in val_ds:
