@@ -8,7 +8,7 @@ It is simple and flexible, trained with wingloss , multi task learning, also wit
 
 [CN blog](https://blog.csdn.net/qq_35606924/article/details/99711208)
 
-And i suggest that you try with this project,including face detect and keypoints, some optimizations were made, u can check it there[pappa_pig_face_engine](github.com/610265158/Peppa_Pig_Face_Engine).
+And i suggest that you try with this project,including face detect and keypoints, some optimizations were made, u can check it there **[[pappa_pig_face_engine]](github.com/610265158/Peppa_Pig_Face_Engine).**
 
 Contact me if u have problem about it. 2120140200@mail.nankai.edu.cn :)
 
