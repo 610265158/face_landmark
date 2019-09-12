@@ -12,7 +12,9 @@ demo pictures:
 ![samples](https://github.com/610265158/face_landmark/blob/master/figures/tmp_screenshot_18.08.20192.png)
 
 ![gifs](https://github.com/610265158/Peppa_Pig_Face_Engine/blob/master/figure/sample.gif)
-this gif is from github.com/610265158/Peppa_Pig_Face_Engine : )
+
+this gif is from github.com/610265158/Peppa_Pig_Face_Engine, but its the same model : )
+
 pretrained model:
 
 + [baidudisk](https://pan.baidu.com/s/1jPW9cq9V9sJDrcrtcqpmLQ)  (code wd5g)
