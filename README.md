@@ -96,10 +96,15 @@ python vis.py
 
 ```
 
-TODO: 
-A face detector is needed.     [dsfd_tensorflow](https://github.com/610265158/DSFD-tensorflow)
+### TODO: 
+- [x] 1. A face detector is needed.    
+          [dsfd_tensorflow](https://github.com/610265158/DSFD-tensorflow)
+          [faceboxes-tensorflow](https://github.com/610265158/faceboxes-tensorflow)
+          [pappa_pig_face_engine](github.com/610265158/Peppa_Pig_Face_Engine)
 
-pruning               
+
+- []  2.pruning               
+        train with resnet, then pruning, it should be better.
 
 
 
