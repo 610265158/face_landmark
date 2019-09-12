@@ -18,8 +18,8 @@ this gif is from github.com/610265158/Peppa_Pig_Face_Engine, but its the same mo
 
 pretrained model:
 
-+ [baidudisk](https://pan.baidu.com/s/1jPW9cq9V9sJDrcrtcqpmLQ)  (code wd5g)
-+ [googledrive](https://drive.google.com/drive/folders/1YHtaLkalAqURbkIYYJBLf6HJZzd6vzOG?usp=sharing)
++ [baidu disk](https://pan.baidu.com/s/1jPW9cq9V9sJDrcrtcqpmLQ)  (code wd5g)
++ [google drive](https://drive.google.com/drive/folders/1YHtaLkalAqURbkIYYJBLf6HJZzd6vzOG?usp=sharing)
 
 
 ## requirment
