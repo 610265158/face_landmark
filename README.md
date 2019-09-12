@@ -97,8 +97,9 @@ python vis.py
 ```
 
 ### TODO: 
-- [x] A face detector is needed.    
-  [dsfd_tensorflow](https://github.com/610265158/DSFD-tensorflow]
+- [x] A face detector is needed.
+
+  [dsfd_tensorflow](https://github.com/610265158/DSFD-tensorflow)
   
   [faceboxes-tensorflow](https://github.com/610265158/faceboxes-tensorflow)
           
