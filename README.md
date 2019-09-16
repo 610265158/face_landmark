@@ -75,7 +75,7 @@ pretrained model:
      4.1 download pretrained model [resnet50](http://download.tensorflow.org/models/resnet_v1_50_2016_08_28.tar.gz)
     
      4.2 change train_config as config.MODEL.net_structure='resnet_v1_50',config.MODEL.pretrained_model='resnet_v1_50.ckpt',
-        it use the first three blocks, so it is still fast, a pruning may achieve a better one.
+        it uses the first three blocks, so it is still fast, a pruning may achieve a better one.
 
 
 
