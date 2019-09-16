@@ -67,17 +67,15 @@ pretrained model:
 (if u like train u own data, u should prepare the data like this:
 `****.jpg| x1 y1 x2 y2 x3 y3...` 
 
-3. download the imagenet pretrained resnet_v1_50 model from [resnet50](http://download.tensorflow.org/models/resnet_v1_50_2016_08_28.tar.gz)
-or [mobilenetv2](https://storage.googleapis.com/mobilenet_v2/checkpoints/mobilenet_v2_1.0_224.tgz)
-release it in the root dir
-
-4. but if u want to train from scratch set config.MODEL.pretrained_model=None,
-
-5. if recover from a completly pretrained model  set config.MODEL.pretrained_model='yourmodel.ckpt',config.MODEL.continue_train=True
-
 then, run:
 
 `python train.py`
+
+3. by default it trained with shufflenetv2_1.0, if u like want train with resnet,do as follow:
+    3.1 download pretrained resnet_v1_50 from [resnet50](http://download.tensorflow.org/models/resnet_v1_50_2016_08_28.tar.gz)
+    3.2 change train_config as # config.MODEL.net_structure='resnet_v1_50'        
+                               # config.MODEL.pretrained_model='resnet_v1_50.ckpt'    
+
 
 
 
