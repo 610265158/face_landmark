@@ -67,16 +67,14 @@ pretrained model:
 (if u like train u own data, u should prepare the data like this:
 `****.jpg| x1 y1 x2 y2 x3 y3...` 
 
-then, run:
+3.then, run:  `python train.py`
 
-`python train.py`
+4. by default it trained with shufflenetv2_1.0, if u like want train with resnet,do as follow:
 
-3. by default it trained with shufflenetv2_1.0, if u like want train with resnet,do as follow:
-
-    3.1 download pretrained resnet_v1_50 from [resnet50](http://download.tensorflow.org/models/resnet_v1_50_2016_08_28.tar.gz)
+    4.1 download pretrained resnet_v1_50 from [resnet50](http://download.tensorflow.org/models/resnet_v1_50_2016_08_28.tar.gz)
     
-    3.2 change train_config as # config.MODEL.net_structure='resnet_v1_50'        
-                               # config.MODEL.pretrained_model='resnet_v1_50.ckpt'    
+    4.2 change train_config as config.MODEL.net_structure='resnet_v1_50',config.MODEL.pretrained_model='resnet_v1_50.ckpt',
+        it use the first three blocks, so it is still fast, a pruning may achieve a better one.
 
 
 
@@ -107,9 +105,9 @@ python vis.py
   [pappa_pig_face_engine](github.com/610265158/Peppa_Pig_Face_Engine)
 
 
-- [ ]  2.pruning     
+- [x]  2. train with resnet     
 
-   train with resnet, then pruning, it should be better.
+- [ ]  then pruning resnet, it should be faster.
 
 
 
