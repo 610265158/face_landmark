@@ -47,10 +47,19 @@ def simple_face(images,labels, training):
 
                 if 'resnet' in cfg.MODEL.net_structure:
                     net, end_points = resnet_v1_50(images, is_training=training, global_pool=False, num_classes=None)
-                ###muti scale there for resnet
+
                     for k, v in end_points.items():
                         print(k, v)
-                    multi_scale=net
+
+                    ###muti scale there for resnet
+                    s1 = tf.reduce_mean(end_points['resnet_v1_50/block1'], [1, 2], name='pool1', keep_dims=True)
+                    s2 = tf.reduce_mean(end_points['resnet_v1_50/block2'], [1, 2], name='pool2', keep_dims=True)
+                    s3 = tf.reduce_mean(end_points['resnet_v1_50/block3'], [1, 2], name='pool3', keep_dims=True)
+                    multi_scale = tf.concat([s1, s2, s3], 3)
+
+
+
+
 
                 elif 'MobilenetV2' in cfg.MODEL.net_structure:
                     net, end_points =mobilenet_v2_050(images,base_only=True,is_training=training,finegrain_classification_mode=False)

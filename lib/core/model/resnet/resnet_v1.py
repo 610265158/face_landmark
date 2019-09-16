@@ -212,7 +212,7 @@ def resnet_v1(inputs,
             if output_stride % 4 != 0:
               raise ValueError('The output_stride needs to be a multiple of 4.')
             output_stride /= 4
-          net = resnet_utils.conv2d_same(net, 64, 7, stride=2, scope='conv1')
+          net = resnet_utils.conv2d_same(net, 64//4, 7, stride=2, scope='conv1')
           net = slim.max_pool2d(net, [3, 3], stride=2, scope='pool1')
         net = resnet_utils.stack_blocks_dense(net, blocks, output_stride,
                                               store_non_strided_activations)
@@ -269,10 +269,10 @@ def resnet_v1_50(inputs,
                  scope='resnet_v1_50'):
   """ResNet-50 model of [1]. See resnet_v1() for arg and return description."""
   blocks = [
-      resnet_v1_block('block1', base_depth=64, num_units=3, stride=1),
-      resnet_v1_block('block2', base_depth=128, num_units=4, stride=2),
-      resnet_v1_block('block3', base_depth=256, num_units=6, stride=2),
-      resnet_v1_block('block4', base_depth=512, num_units=3, stride=2),
+      resnet_v1_block('block1', base_depth=64//4, num_units=3, stride=2),
+      resnet_v1_block('block2', base_depth=128//4, num_units=4, stride=2),
+      resnet_v1_block('block3', base_depth=256//4, num_units=6, stride=2),
+      #resnet_v1_block('block4', base_depth=512, num_units=3, stride=2),
   ]
   return resnet_v1(inputs, blocks, num_classes, is_training,
                    global_pool=global_pool, output_stride=output_stride,
