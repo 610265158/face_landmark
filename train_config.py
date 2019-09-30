@@ -31,7 +31,7 @@ config.TRAIN.weight_decay_factor = 1.e-5                                    ####
 config.TRAIN.train_val_ratio= 0.9                                           ### nouse
 config.TRAIN.vis=False                                                      #### if to check the training data
 config.TRAIN.mix_precision=False                                            ##use mix precision to speedup, tf1.14 at least
-config.TRAIN.opt='Adam'                                                     ##Adam or SGD
+config.TRAIN.opt='Adam'                                                     ##Adam or SGD， sgd is more stable for resnet
 
 config.MODEL = edict()
 config.MODEL.continue_train=False                                           ##recover from a model completly
