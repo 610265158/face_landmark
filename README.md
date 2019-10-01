@@ -106,9 +106,9 @@ python vis.py
   [pappa_pig_face_engine](github.com/610265158/Peppa_Pig_Face_Engine)
 
 
-- [x]  2. train with resnet     
+- [x]  train with resnet     
 
 - [ ]  then pruning resnet, it should be faster.
 
-
+- [ ]  transfer to tensorflow 2.0
 
