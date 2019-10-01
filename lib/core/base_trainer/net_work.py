@@ -13,7 +13,7 @@ from train_config import config as cfg
 from lib.dataset.dataietr import DataIter
 
 from lib.core.model.simpleface import SimpleFace
-
+from lib.core.model.simpleface import calculate_loss
 from lib.helper.logger import logger
 
 
@@ -456,14 +456,21 @@ class Train(object):
     self.strategy = tf.distribute.MirroredStrategy()
 
 
-    self.loss_object = tf.keras.losses.SparseCategoricalCrossentropy(
-        from_logits=True, reduction=tf.keras.losses.Reduction.NONE)
+    self.loss_object = self.loss_obj
 
     self.optimizer = tf.keras.optimizers.SGD(learning_rate=0.1,
                                              momentum=0.9, nesterov=True)
 
     self.test_loss_metric = tf.keras.metrics.Sum(name='test_loss')
-    self.model = model
+    self.model = SimpleFace()
+
+
+  def loss_obj(self,label,predictions):
+      loss=calculate_loss(predictions,label)
+      return loss
+
+
+
 
   def decay(self, epoch):
     if epoch < 150:
@@ -474,8 +481,7 @@ class Train(object):
       return 0.001
 
   def compute_loss(self, label, predictions):
-    loss = tf.reduce_sum(self.loss_object(label, predictions)) * (
-        1. / self.batch_size)
+    loss = tf.reduce_sum(self.loss_object(label, predictions))
     loss += (sum(self.model.losses) * 1. / self.strategy.num_replicas_in_sync)
     return loss
 
@@ -495,7 +501,6 @@ class Train(object):
     self.optimizer.apply_gradients(zip(gradients,
                                        self.model.trainable_variables))
 
-    self.train_acc_metric(label, predictions)
     return loss
 
   def test_step(self, inputs):
@@ -509,8 +514,6 @@ class Train(object):
     unscaled_test_loss = self.loss_object(label, predictions) + sum(
         self.model.losses)
 
-    self.test_acc_metric(label, predictions)
-    self.test_loss_metric(unscaled_test_loss)
 
   def custom_loop(self, train_dist_dataset, test_dist_dataset,
                   strategy):
@@ -554,24 +557,17 @@ class Train(object):
       test_total_loss, num_test_batches = distributed_test_epoch(
           test_dist_dataset)
 
-      template = ('Epoch: {}, Train Loss: {}, Train Accuracy: {}, '
-                  'Test Loss: {}, Test Accuracy: {}')
+      template = ('Epoch: {}, Train Loss: {}, '
+                  'Test Loss: {}')
 
       print(
           template.format(epoch,
                           train_total_loss / num_train_batches,
-                          self.train_acc_metric.result(),
-                          test_total_loss / num_test_batches,
-                          self.test_acc_metric.result()))
+                          test_total_loss / num_test_batches))
 
-      if epoch != self.epochs - 1:
-        self.train_acc_metric.reset_states()
-        self.test_acc_metric.reset_states()
 
     return (train_total_loss / num_train_batches,
-            self.train_acc_metric.result().numpy(),
-            test_total_loss / num_test_batches,
-            self.test_acc_metric.result().numpy())
+            test_total_loss / num_test_batches)
 
 
 
