@@ -40,15 +40,6 @@ config.MODEL.hin = 160                                                      # in
 config.MODEL.win = 160
 config.MODEL.out_channel=136+3+4+4+2    # output vector    68 points , 3 headpose ,4 cls params,(left eye, right eye, mouth, big mouth open)
 
-# config.MODEL.net_structure='resnet_v1_50'                  #### resnet_v1_50 or  MobilenetV2,ShuffleNetV2 are supported,   resnet is the best, mobilenet seems not so good
-# config.MODEL.pretrained_model='resnet_v1_50.ckpt'          ###resnet_v1_50.ckpt or mobilenet_v2_1.0_224.ckpt
-###
-# config.MODEL.net_structure='MobilenetV2'
-# config.MODEL.pretrained_model='mobilenet_v2_0.5_224.ckpt'
-
-# config.MODEL.net_structure='ShuffleNetV2'
-# config.MODEL.pretrained_model=None
-
 config.MODEL.net_structure='ShuffleNetV2PLUS'
 config.MODEL.pretrained_model=None
 config.DATA = edict()

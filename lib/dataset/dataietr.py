@@ -7,13 +7,12 @@ import cv2
 import json
 
 import numpy as np
-from functools import partial
-import traceback
+import tensorflow as tf
 import copy
 
 from lib.helper.logger import logger
-from tensorpack.dataflow import DataFromGenerator
-from tensorpack.dataflow import BatchData, MultiProcessPrefetchData
+#from tensorpack.dataflow import DataFromGenerator
+#from tensorpack.dataflow import BatchData, MultiProcessPrefetchData
 
 
 from lib.dataset.augmentor.augmentation import Rotate_aug,\
@@ -50,47 +49,47 @@ class data_info(object):
     def get_all_sample(self):
         random.shuffle(self.metas)
         return self.metas
-
-
-class DataIter():
-    def __init__(self,img_root_path='',ann_file=None,training_flag=True):
-
-        self.shuffle=True
-        self.training_flag=training_flag
-        self.num_gpu = cfg.TRAIN.num_gpu
-        self.batch_size = cfg.TRAIN.batch_size
-        self.process_num = cfg.TRAIN.process_num
-        self.prefetch_size = cfg.TRAIN.prefetch_size
-
-        self.generator = FaceKeypointDataIter(img_root_path, ann_file, self.training_flag)
-
-        self.ds=self.build_iter()
-
-
-    def parse_file(self,im_root_path,ann_file):
-
-        raise NotImplementedError("you need implemented the parse func for your data")
-
-
-    def build_iter(self):
-
-        ds = DataFromGenerator(self.generator)
-        ds = BatchData(ds, self.num_gpu *  self.batch_size)
-        ds = MultiProcessPrefetchData(ds, self.prefetch_size, self.process_num)
-        ds.reset_state()
-        ds = ds.get_data()
-        return ds
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        return next(self.ds)
-
-
-    def _map_func(self,dp,is_training):
-
-        raise NotImplementedError("you need implemented the map func for your data")
+#
+#
+# class DataIter():
+#     def __init__(self,img_root_path='',ann_file=None,training_flag=True):
+#
+#         self.shuffle=True
+#         self.training_flag=training_flag
+#         self.num_gpu = cfg.TRAIN.num_gpu
+#         self.batch_size = cfg.TRAIN.batch_size
+#         self.process_num = cfg.TRAIN.process_num
+#         self.prefetch_size = cfg.TRAIN.prefetch_size
+#
+#         self.generator = FaceKeypointDataIter(img_root_path, ann_file, self.training_flag)
+#
+#         self.ds=self.build_iter()
+#
+#
+#     def parse_file(self,im_root_path,ann_file):
+#
+#         raise NotImplementedError("you need implemented the parse func for your data")
+#
+#
+#     def build_iter(self):
+#
+#         ds = DataFromGenerator(self.generator)
+#         ds = BatchData(ds, self.num_gpu *  self.batch_size)
+#         ds = MultiProcessPrefetchData(ds, self.prefetch_size, self.process_num)
+#         ds.reset_state()
+#         ds = ds.get_data()
+#         return ds
+#
+#     def __iter__(self):
+#         return self
+#
+#     def __next__(self):
+#         return next(self.ds)
+#
+#
+#     def _map_func(self,dp,is_training):
+#
+#         raise NotImplementedError("you need implemented the map func for your data")
 
 
 
@@ -114,7 +113,7 @@ class FaceKeypointDataIter():
 
 
 
-    def __iter__(self):
+    def __call__(self, *args, **kwargs):
         idxs = np.arange(len(self.lst))
 
         while True:
@@ -404,5 +403,5 @@ class FaceKeypointDataIter():
             weights = np.array([0, 1])
 
             label = np.concatenate([label, weights], axis=0)
-
+            print(label.shape)
         return crop_image, label

@@ -47,7 +47,7 @@ class SELayer(tf.keras.Model):
         self.conv2=tf.keras.layers.Conv2D(inplanes,kernel_size=[1,1],strides=1,use_bias=False)
 
 
-    def call(self, inputs, training=None, mask=None):
+    def call(self, inputs, training=False):
 
         se_pool=tf.expand_dims(self.pool1(inputs),axis=1)
         se_pool = tf.expand_dims(se_pool, axis=2)
@@ -133,7 +133,7 @@ class Shufflenet(tf.keras.Model):
 
 
 
-    def call(self, inputs, training=None, mask=None):
+    def call(self, inputs, training=False):
 
 
         if self.stride == 1:
@@ -226,7 +226,7 @@ class Shuffle_Xception(tf.keras.Model):
                 branch_proj[-1] = HS()
             self.branch_proj =  tf.keras.Sequential(branch_proj)
 
-    def call(self, inputs, training=None, mask=None):
+    def call(self, inputs, training=False):
         if self.stride==1:
             x_proj, x = channel_shuffle(inputs)
             return tf.concat((x_proj, self.branch_main(x)), 3)
@@ -312,9 +312,8 @@ class ShuffleNetPlus(tf.keras.Model):
         assert archIndex == len(architecture)
 
 
-        #self.features = tf.keras.Sequential(self.features)
 
-    def call(self, inputs, training=None, mask=None):
+    def call(self, inputs, training=False):
 
         x = self.first_conv(inputs)
 

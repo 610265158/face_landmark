@@ -116,55 +116,6 @@ if __name__=='__main__':
 
 
 
-def simple_face(images,labels, training):
-
-
-
-
-
-    if 'ShuffleNetV2PLUS' in cfg.MODEL.net_structure:
-
-        model=ShuffleNetPlus()
-
-        net, end_points = model(images, training=training)
-
-        #net, end_points=shufflenet_v2(images,is_training=training,depth_multiplier='1.0')
-        for k, v in end_points.items():
-            print(k, v)
-        print(net)
-        s1 = tf.reduce_mean(end_points['layer7'], [1, 2], name='pool1', keep_dims=True)
-        s2 = tf.reduce_mean(end_points['layer15'], [1, 2], name='pool2', keep_dims=True)
-        s3 = tf.reduce_mean(end_points['layer20'], [1, 2], name='pool3', keep_dims=True)
-        multi_scale = tf.concat([s1, s2, s3], 3)
-
-    elif 'ShuffleNetV2' in cfg.MODEL.net_structure:
-
-        model=ShuffleNetPlus()
-
-        net, end_points = model(images, training=training)
-
-        #net, end_points=shufflenet_v2(images,is_training=training,depth_multiplier='1.0')
-        for k, v in end_points.items():
-            print(k, v)
-        print(net)
-        s1 = tf.reduce_mean(end_points['layer7'], [1, 2], name='pool1', keep_dims=True)
-        s2 = tf.reduce_mean(end_points['layer15'], [1, 2], name='pool2', keep_dims=True)
-        s3 = tf.reduce_mean(end_points['layer20'], [1, 2], name='pool3', keep_dims=True)
-        multi_scale = tf.concat([s1, s2, s3], 3)
-
-    else:
-        arg_scope = resnet_arg_scope()
-        with sl
-
-    net = slim.conv2d(multi_scale, cfg.MODEL.out_channel-2, [1, 1], activation_fn=None,
-                      normalizer_fn=None, scope='logits')
-    net_out = tf.squeeze(net, [1, 2], name='SpatialSqueeze')
-
-    net_out = tf.identity(net_out, name='prediction')
-
-    loss, leye_loss, reye_loss, mouth_loss, eyeglasses_loss, gender_loss, mouth_slightly_loss,smile_loss, l2_loss = calculate_loss(net_out, labels)
-
-    return loss, leye_loss, reye_loss, mouth_loss, eyeglasses_loss, gender_loss, mouth_slightly_loss,smile_loss, l2_loss
 
 
 def _wing_loss(landmarks, labels, w=10.0, epsilon=2.0,weights=1.):
@@ -175,18 +126,21 @@ def _wing_loss(landmarks, labels, w=10.0, epsilon=2.0,weights=1.):
     Returns:
         a float tensor with shape [].
     """
-    with tf.name_scope('wing_loss'):
-        x = landmarks - labels
-        c = w * (1.0 - math.log(1.0 + w / epsilon))
-        absolute_x = tf.abs(x)
-        losses = tf.where(
-            tf.greater(w, absolute_x),
-            w * tf.log(1.0 + absolute_x / epsilon),
-            absolute_x - c
-        )
-        losses=losses*cfg.DATA.weights
-        loss = tf.reduce_sum(tf.reduce_mean(losses*weights, axis=[0]))
-        return loss
+
+    x = landmarks - labels
+    c = w * (1.0 - math.log(1.0 + w / epsilon))
+    absolute_x = tf.abs(x)
+    losses = tf.where(
+        tf.greater(w, absolute_x),
+        w * tf.math.log(1.0 + absolute_x / epsilon),
+        absolute_x - c
+    )
+    losses=losses*cfg.DATA.weights
+    loss = tf.reduce_sum(tf.reduce_mean(losses*weights, axis=[0]))
+
+
+
+    return loss
 
 
 def _mse(landmarks, labels,weights=1.):
@@ -293,28 +247,19 @@ def calculate_loss(predict, labels):
 
 
     #### l2 regularization_losses
-    l2_loss = []
-    l2_reg = tf.keras.regularizers.l2(cfg.TRAIN.weight_decay_factor)
-    variables_restore = tf.get_collection(tf.GraphKeys.MODEL_VARIABLES)
-    for var in variables_restore:
-        if 'weight' in var.name:
-            l2_loss.append(l2_reg(var))
-    regularization_losses = tf.add_n(l2_loss, name='l1_loss')
+    # l2_loss = []
+    # l2_reg = tf.keras.regularizers.l2(cfg.TRAIN.weight_decay_factor)
+    # variables_restore = tf.get_collection(tf.GraphKeys.MODEL_VARIABLES)
+    # for var in variables_restore:
+    #     if 'weight' in var.name:
+    #         l2_loss.append(l2_reg(var))
+    # regularization_losses = tf.add_n(l2_loss, name='l1_loss')
 
 
 
-    if cfg.MODEL.pruning:
-        bn_l1_loss = []
-        bn_reg = slim.l1_regularizer(cfg.MODEL.pruning_bn_reg)
-        variables_restore = tf.get_collection(tf.GraphKeys.MODEL_VARIABLES, scope=cfg.MODEL.net_structure)
-        for var in variables_restore:
-            if 'beta' in var.name:
-                bn_l1_loss.append(bn_reg(var))
-        l1_loss = tf.add_n(bn_l1_loss, name='l1_loss')
-
-        regularization_losses = regularization_losses + l1_loss
 
 
-    return loss, leye_loss, reye_loss, mouth_loss, eyeglasses_loss, gender_loss, mouth_slightly_loss,smile_loss, regularization_losses
+
+    return loss+leye_loss+reye_loss+mouth_loss+eyeglasses_loss+gender_loss+mouth_slightly_loss+smile_loss#+regularization_losses
 
 
