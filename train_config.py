@@ -9,16 +9,16 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 config.TRAIN = edict()
 #### below are params for dataiter
-config.TRAIN.process_num = 5
+config.TRAIN.process_num = 1
 config.TRAIN.prefetch_size = 50
 ############
 
 
 config.TRAIN.num_gpu = 1
-config.TRAIN.batch_size = 128
+config.TRAIN.batch_size = 16
 config.TRAIN.save_interval = 5000               ##no use, we save the model evry epoch
 config.TRAIN.log_interval = 10                  ##10 iters for a log msg
-config.TRAIN.epoch = 2000                       #### no actual meaning, just keep training,
+config.TRAIN.epoch = 200                       #### no actual meaning, just keep training,
 config.TRAIN.train_set_size=972930              ###########u need be sure
 config.TRAIN.val_set_size=107115                ###50562
 
@@ -26,7 +26,7 @@ config.TRAIN.iter_num_per_epoch = config.TRAIN.train_set_size // config.TRAIN.nu
 config.TRAIN.val_iter=config.TRAIN.val_set_size// config.TRAIN.num_gpu // config.TRAIN.batch_size
 
 config.TRAIN.lr_value_every_step = [0.001,0.0001,0.00001,0.000001]          ####lr policy
-config.TRAIN.lr_decay_every_step = [150000,250000,300000]
+config.TRAIN.lr_decay_every_epoch = [20,30,40]
 config.TRAIN.weight_decay_factor = 1.e-5                                    ####l2
 config.TRAIN.train_val_ratio= 0.9                                           ### nouse
 config.TRAIN.vis=False                                                      #### if to check the training data

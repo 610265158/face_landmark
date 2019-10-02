@@ -44,12 +44,9 @@ class SimpleFace(tf.keras.Model):
     def __init__(self):
         super(SimpleFace, self).__init__()
 
-
         self.backbone=ShuffleNetPlus()
 
         self.head=SimpleFaceHead()
-
-
 
         self.pool1=tf.keras.layers.GlobalAveragePooling2D()
         self.pool2 = tf.keras.layers.GlobalAveragePooling2D()
@@ -58,10 +55,7 @@ class SimpleFace(tf.keras.Model):
     def call(self, inputs, training=False):
 
         inputs=self.preprocess(inputs)
-
-
         net,end_points=self.backbone(inputs,training=training)
-
 
         s1 = self.pool1(end_points['layer7'])
         s2 = self.pool2(end_points['layer15'])
@@ -75,8 +69,8 @@ class SimpleFace(tf.keras.Model):
 
     def preprocess(self,image):
 
-        if image.dtype.base_dtype != tf.float32:
-            image = tf.cast(image, tf.float32)
+        #if image.dtype != tf.float32:
+        image = tf.cast(image, tf.float32)
 
         mean = cfg.DATA.PIXEL_MEAN
         std = np.asarray(cfg.DATA.PIXEL_STD)
@@ -87,11 +81,12 @@ class SimpleFace(tf.keras.Model):
 
         return image
 
-    def load_weights(self):
-        pass
-    def inference(self):
-        pass
+    # def load_weights(self,model_path):
+    #     tf.saved_model.load(model_path)
 
+    def inference(self,images,training=False):
+        out=self.call(images,training=training)
+        return out
 
 
 

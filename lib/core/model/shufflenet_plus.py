@@ -256,10 +256,6 @@ class ShuffleNetPlus(tf.keras.Model):
         elif model_size == 'Small':
             self.stage_out_channels = [-1, 16, 36, 104, 208, 416, 1280]
 
-
-
-
-
         # building first layer
         input_channel = self.stage_out_channels[1]
 

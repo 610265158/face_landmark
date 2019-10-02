@@ -12,7 +12,7 @@ i decide to merge more data from CelebA, so the data anns will be complex, so js
 
 
 
-data_dir='/home/lz/coco_data/HELEN'      ########points to your director,300w
+data_dir='ibug'      ########points to your director,300w
 celeba_data_dir='/home/lz/coco_data/CELEBA'                      ########points to your director,CELEBA
 
 

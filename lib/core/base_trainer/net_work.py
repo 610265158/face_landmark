@@ -7,7 +7,7 @@ import tensorflow as tf
 import time
 import numpy as np
 import cv2
-
+import os
 
 from train_config import config as cfg
 #from lib.dataset.dataietr import DataIter
@@ -15,105 +15,6 @@ from train_config import config as cfg
 from lib.core.model.simpleface import SimpleFace
 from lib.core.model.simpleface import calculate_loss
 from lib.helper.logger import logger
-
-
-# class trainner():
-#     def __init__(self):
-#         # self.train_ds=DataIter(cfg.DATA.root_path,cfg.DATA.train_txt_path,True)
-#         # self.val_ds = DataIter(cfg.DATA.root_path,cfg.DATA.val_txt_path,False)
-#
-#
-#
-#         self.ite_num=1
-#
-#
-#
-#         self.summaries = []
-#
-#         self.ema_weights = False
-#
-#         self.strategy = tf.distribute.MirroredStrategy()
-#         print('Number of devices: {}'.format(self.strategy.num_replicas_in_sync))
-#
-#         with self.strategy.scope():
-#
-#             self.model=SimpleFace()
-#
-#
-#
-#     def get_opt(self):
-#
-#         with self._graph.as_default():
-#             ##set the opt there
-#             global_step = tf.get_variable(
-#                 'global_step', [],
-#                 initializer=tf.constant_initializer(0), dtype=tf.int32, trainable=False)
-#
-#             # Decay the learning rate
-#             lr = tf.train.piecewise_constant(global_step,
-#                                              cfg.TRAIN.lr_decay_every_step,
-#                                              cfg.TRAIN.lr_value_every_step
-#                                              )
-#             if cfg.TRAIN.opt=='Adam':
-#                 opt = tf.train.AdamOptimizer(lr)
-#             else:
-#                 opt = tf.train.MomentumOptimizer(lr, momentum=0.9, use_nesterov=False)
-#
-#             if cfg.TRAIN.mix_precision:
-#                 opt = tf.train.experimental.enable_mixed_precision_graph_rewrite(opt)
-#
-#             return opt,lr,global_step
-#
-#     def load_weight(self):
-#
-#         with self._graph.as_default():
-#
-#             if cfg.MODEL.continue_train:
-#                 #########################restore the params
-#                 variables_restore = tf.get_collection(tf.GraphKeys.MODEL_VARIABLES)
-#                 print(variables_restore)
-#
-#                 saver2 = tf.train.Saver(variables_restore)
-#                 saver2.restore(self._sess, cfg.MODEL.pretrained_model)
-#
-#             elif cfg.MODEL.pretrained_model is not None  and not cfg.MODEL.pruning:
-#                 #########################restore the params
-#                 variables_restore = tf.get_collection(tf.GraphKeys.MODEL_VARIABLES, scope=cfg.MODEL.net_structure)
-#                 print(variables_restore)
-#
-#                 saver2 = tf.train.Saver(variables_restore)
-#                 saver2.restore(self._sess, cfg.MODEL.pretrained_model)
-#             elif cfg.MODEL.pruning:
-#                 #########################restore the params
-#                 variables_restore = tf.get_collection(tf.GraphKeys.MODEL_VARIABLES)
-#                 print(variables_restore)
-#                 #    print('......................................................')
-#                 #    # saver2 = tf.train.Saver(variables_restore)
-#                 variables_restore_n = [v for v in variables_restore if
-#                                        'output' not in v.name]  # Conv2d_1c_1x1 Bottleneck
-#                 # print(variables_restore_n)
-#
-#                 state_dict=np.load(cfg.MODEL.pretrained_model)
-#
-#                 state_dict=state_dict['arr_0'][()]
-#
-#                 for var in variables_restore_n:
-#                     var_name=var.name.rsplit(':')[0]
-#                     if var_name in state_dict:
-#                         logger.info('recover %s from npz file'%var_name)
-#                         self._sess.run(tf.assign(var, state_dict[var_name]))
-#                     else:
-#                         logger.info('the params of %s not in npz file'%var_name)
-#             else:
-#                 logger.info('no pretrained model, train from sctrach')
-#                 # Build an initialization operation to run below.
-#
-#     def add_summary(self, event):
-#         self.summaries.append(event)
-
-
-
-
 
 
 class Train(object):
@@ -133,13 +34,27 @@ class Train(object):
     self.strategy = strategy
 
 
+
+
+
     self.loss_object = self.loss_obj
 
-    self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
 
-    self.test_loss_metric = tf.keras.metrics.Sum(name='test_loss')
+    if 'Adam' in cfg.TRAIN.opt:
+      self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+    else:
+      self.optimizer = tf.keras.optimizers.SGD(learning_rate=0.001,momentum=0.9)
+
     self.model = model
 
+    ###control vars
+    self.iter_num=0
+
+    self.lr_decay_every_epoch =cfg.TRAIN.lr_decay_every_epoch
+    self.lr_val_every_epoch = cfg.TRAIN.lr_value_every_step
+
+
+    ##
 
   def loss_obj(self,label,predictions):
       loss=calculate_loss(predictions,label)
@@ -149,12 +64,14 @@ class Train(object):
 
 
   def decay(self, epoch):
-    if epoch < 150:
-      return 0.1
-    if epoch >= 150 and epoch < 225:
-      return 0.01
-    if epoch >= 225:
-      return 0.001
+    if epoch < self.lr_decay_every_epoch[0]:
+      return self.lr_val_every_epoch[0]
+    if epoch >= self.lr_decay_every_epoch[0] and epoch < self.lr_decay_every_epoch[1]:
+      return self.lr_val_every_epoch[1]
+    if epoch >= self.lr_decay_every_epoch[1] and epoch < self.lr_decay_every_epoch[2]:
+      return self.lr_val_every_epoch[2]
+    if epoch >= self.lr_decay_every_epoch[2]:
+      return self.lr_val_every_epoch[3]
 
   def compute_loss(self, label, predictions):
     loss = tf.reduce_sum(self.loss_object(label, predictions))
@@ -173,7 +90,6 @@ class Train(object):
     with tf.GradientTape() as tape:
       predictions = self.model(image, training=True)
       loss = self.compute_loss(label, predictions)
-      print(loss)
 
     gradients = tape.gradient(loss, self.model.trainable_variables)
     self.optimizer.apply_gradients(zip(gradients,
@@ -192,6 +108,8 @@ class Train(object):
     unscaled_test_loss = self.loss_object(label, predictions) + sum(
         self.model.losses)
 
+    return unscaled_test_loss
+
 
   def custom_loop(self, train_dist_dataset, test_dist_dataset,
                   strategy):
@@ -207,25 +125,41 @@ class Train(object):
     def distributed_train_epoch(ds):
       total_loss = 0.0
       num_train_batches = 0.0
+
+
       for one_batch in ds:
+
+        start=time.time()
         per_replica_loss = strategy.experimental_run_v2(
             self.train_step, args=(one_batch,))
-        total_loss += strategy.reduce(
+        current_loss = strategy.reduce(
             tf.distribute.ReduceOp.SUM, per_replica_loss, axis=None)
+        total_loss += current_loss
         num_train_batches += 1
+        self.iter_num+=1
+        time_cost_per_batch=time.time()-start
 
+        images_per_sec=cfg.TRAIN.batch_size/time_cost_per_batch
+        if self.iter_num%cfg.TRAIN.log_interval==0:
+          logger.info('iter_num: %d, '
+                      'loss_value: %.6f,  '
+                      'speed: %d images/sec ' \
+                      % (self.iter_num, current_loss,images_per_sec))
 
-
-        print(per_replica_loss)
       return total_loss, num_train_batches
 
     def distributed_test_epoch(ds):
+      total_loss=0.
       num_test_batches = 0.0
       for one_batch in ds:
-        strategy.experimental_run_v2(
+        per_replica_loss=strategy.experimental_run_v2(
             self.test_step, args=(one_batch,))
+
+        current_loss = strategy.reduce(
+            tf.distribute.ReduceOp.SUM, per_replica_loss, axis=None)
+        total_loss+=current_loss
         num_test_batches += 1
-      return self.test_loss_metric.result(), num_test_batches
+      return total_loss, num_test_batches
 
     if self.enable_function:
       distributed_train_epoch = tf.function(distributed_train_epoch)
@@ -239,13 +173,18 @@ class Train(object):
       test_total_loss, num_test_batches = distributed_test_epoch(
           test_dist_dataset)
 
-      template = ('Epoch: {}, Train Loss: {}, '
-                  'Test Loss: {}')
+      training_massage = 'Epoch: %d, ' \
+                         'Train Loss: %.6f, ' \
+                         'Test Loss: %.6f'%(epoch,
+                                            train_total_loss / num_train_batches,
+                                            test_total_loss / num_test_batches)
 
-      print(
-          template.format(epoch,
-                          train_total_loss / num_train_batches,
-                          test_total_loss / num_test_batches))
+      logger.info(training_massage)
+
+      current_model_saved_name=os.path.join(cfg.MODEL.model_path,'epoch_%d_val_loss%.6f'%(epoch,test_total_loss / num_test_batches))
+
+      tf.saved_model.save(self.model, current_model_saved_name)
+      #### save the model every end of epoch
 
 
     return (train_total_loss / num_train_batches,

@@ -116,13 +116,14 @@ class FaceKeypointDataIter():
     def __call__(self, *args, **kwargs):
         idxs = np.arange(len(self.lst))
 
-        while True:
-            if self.shuffle:
-                np.random.shuffle(idxs)
-            for k in idxs:
-                yield self._map_func(self.lst[k], self.training_flag)
+        # while True:
+        if self.shuffle:
+            np.random.shuffle(idxs)
+        for k in idxs:
+            yield self._map_func(self.lst[k], self.training_flag)
 
-
+    def __len__(self):
+        return len(self.lst)
 
     def balance(self,anns):
         res_anns = copy.deepcopy(anns)
@@ -156,20 +157,20 @@ class FaceKeypointDataIter():
                     for i in range(10):
                         res_anns.append(ann)
                 ####half face
-                if np.sqrt(np.square(label[36, 0] - label[45, 0]) +
-                           np.square(label[36, 1] - label[45, 1])) / bbox_width < 0.5:
-                    for i in range(20):
-                        res_anns.append(ann)
-
-                if np.sqrt(np.square(label[62, 0] - label[66, 0]) +
-                           np.square(label[62, 1] - label[66, 1])) / bbox_height > 0.15:
-                    for i in range(20):
-                        res_anns.append(ann)
-
-                if np.sqrt(np.square(label[62, 0] - label[66, 0]) +
-                           np.square(label[62, 1] - label[66, 1])) / cfg.MODEL.hin > self.big_mouth_open_thres:
-                    for i in range(50):
-                        res_anns.append(ann)
+                # if np.sqrt(np.square(label[36, 0] - label[45, 0]) +
+                #            np.square(label[36, 1] - label[45, 1])) / bbox_width < 0.5:
+                #     for i in range(20):
+                #         res_anns.append(ann)
+                #
+                # if np.sqrt(np.square(label[62, 0] - label[66, 0]) +
+                #            np.square(label[62, 1] - label[66, 1])) / bbox_height > 0.15:
+                #     for i in range(20):
+                #         res_anns.append(ann)
+                #
+                # if np.sqrt(np.square(label[62, 0] - label[66, 0]) +
+                #            np.square(label[62, 1] - label[66, 1])) / cfg.MODEL.hin > self.big_mouth_open_thres:
+                #     for i in range(50):
+                #         res_anns.append(ann)
                 ##########eyes diff aug
                 if left_eye_close and not right_eye_close:
                     for i in range(40):
