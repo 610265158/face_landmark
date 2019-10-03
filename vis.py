@@ -18,10 +18,14 @@ train_dataset = tf.data.Dataset.from_generator(ds,
                                                output_shapes=([None, None, None], [cfg.MODEL.out_channel]))
 
 
-face=SimpleFace()
 
-# model='./model/epoch_7_val_loss63.637318'
-# face.load_weights(model)
+#face=SimpleFace()
+
+
+saved_model_path='./model/epoch_2_val_loss220.743835'
+face = tf.keras.models.load_model(saved_model_path)
+
+
 
 
 for images, labels in train_dataset:
@@ -29,7 +33,7 @@ for images, labels in train_dataset:
 
     images=np.expand_dims(images,axis=0)
 
-    res=face.inference(images)
+    res=face.predict(images)
     print(res)
 
     img_show=img_show.astype(np.uint8)
@@ -38,8 +42,9 @@ for images, labels in train_dataset:
 
     landmark = np.array(res[0][0:136]).reshape([-1, 2])
 
-    for _index in range(res.shape[0]):
-        x_y = res[_index]
+    for _index in range(landmark.shape[0]):
+        x_y = landmark[_index]
+        print(x_y)
         cv2.circle(img_show, center=(int(x_y[0] * config.MODEL.hin),
                                      int(x_y[1] * config.MODEL.win)),
                    color=(255, 122, 122), radius=1, thickness=2)

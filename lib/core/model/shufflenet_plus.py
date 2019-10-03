@@ -29,7 +29,7 @@ class HS(tf.keras.Model):
     def __init__(self):
         super(HS, self).__init__()
 
-    def call(self, inputs, training=None, mask=None):
+    def call(self, inputs, training=None):
 
         x = inputs * tf.nn.relu6(inputs + 3.) / 6.
 
@@ -331,6 +331,8 @@ if __name__=='__main__':
     model = ShuffleNetPlus()
 
     image=np.zeros(shape=(1,160,160,3),dtype=np.float32)
-    x=model(image)
+
+    x=model.predict(image)
+
 
     model.summary()

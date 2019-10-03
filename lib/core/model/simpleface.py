@@ -20,16 +20,13 @@ class SimpleFaceHead(tf.keras.Model):
     def __init__(self,):
         super(SimpleFaceHead, self).__init__()
 
-
         self.output_size=cfg.MODEL.out_channel
-
 
         self.conv=tf.keras.layers.Dense(self.output_size,
                                             use_bias=True)
 
 
     def call(self, inputs, training=False):
-
 
         output=self.conv(inputs)
 
@@ -53,7 +50,6 @@ class SimpleFace(tf.keras.Model):
         self.pool3 = tf.keras.layers.GlobalAveragePooling2D()
 
     def call(self, inputs, training=False):
-
         inputs=self.preprocess(inputs)
         net,end_points=self.backbone(inputs,training=training)
 
@@ -83,10 +79,10 @@ class SimpleFace(tf.keras.Model):
 
     # def load_weights(self,model_path):
     #     tf.saved_model.load(model_path)
-
-    def inference(self,images,training=False):
-        out=self.call(images,training=training)
-        return out
+    #
+    # def inference(self,images,training=False):
+    #     out=self.call(images,training=training)
+    #     return out
 
 
 
@@ -102,8 +98,8 @@ if __name__=='__main__':
     model = SimpleFace()
 
     image=np.zeros(shape=(1,160,160,3),dtype=np.float32)
-    x=model(image)
-
+    x=model.predict(image)
+    print(x)
     model.summary()
 
 

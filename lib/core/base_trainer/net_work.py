@@ -89,6 +89,7 @@ class Train(object):
     image, label = inputs
     with tf.GradientTape() as tape:
       predictions = self.model(image, training=True)
+
       loss = self.compute_loss(label, predictions)
 
     gradients = tape.gradient(loss, self.model.trainable_variables)
@@ -103,8 +104,7 @@ class Train(object):
       inputs: one batch input.
     """
     image, label = inputs
-    predictions = self.model(image, training=False)
-
+    predictions = self.model.predict(image)
     unscaled_test_loss = self.loss_object(label, predictions) + sum(
         self.model.losses)
 
@@ -125,7 +125,6 @@ class Train(object):
     def distributed_train_epoch(ds):
       total_loss = 0.0
       num_train_batches = 0.0
-
 
       for one_batch in ds:
 
@@ -183,7 +182,8 @@ class Train(object):
 
       current_model_saved_name=os.path.join(cfg.MODEL.model_path,'epoch_%d_val_loss%.6f'%(epoch,test_total_loss / num_test_batches))
 
-      tf.saved_model.save(self.model, current_model_saved_name)
+      #tf.saved_model.save(self.model, current_model_saved_name)
+      self.model.save(current_model_saved_name)
       #### save the model every end of epoch
 
 

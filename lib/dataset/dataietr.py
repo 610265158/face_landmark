@@ -286,24 +286,24 @@ class FaceKeypointDataIter():
 
                 if random.uniform(0, 1) > 0.5:
                     crop_image, label = Mirror(crop_image, label=label, symmetry=cfg.DATA.symmetry)
-                if random.uniform(0, 1) > 0.0:
-                    angle = random.uniform(-45, 45)
-                    crop_image, label = Rotate_aug(crop_image, label=label, angle=angle)
-
-                if random.uniform(0, 1) > 0.5:
-                    strength = random.uniform(0, 50)
-                    crop_image, label = Affine_aug(crop_image, strength=strength, label=label)
-
-
-                if random.uniform(0, 1) > 0.5:
-                    crop_image=self.color_augmentor(crop_image)
-                if random.uniform(0, 1) > 0.5:
-                    crop_image=pixel_jitter(crop_image,15)
-                if random.uniform(0, 1) > 0.5:
-                    crop_image = Img_dropout(crop_image, 0.2)
-
-                if random.uniform(0, 1) > 0.5:
-                    crop_image = Padding_aug(crop_image, 0.3)
+                # if random.uniform(0, 1) > 0.0:
+                #     angle = random.uniform(-45, 45)
+                #     crop_image, label = Rotate_aug(crop_image, label=label, angle=angle)
+                #
+                # if random.uniform(0, 1) > 0.5:
+                #     strength = random.uniform(0, 50)
+                #     crop_image, label = Affine_aug(crop_image, strength=strength, label=label)
+                #
+                #
+                # if random.uniform(0, 1) > 0.5:
+                #     crop_image=self.color_augmentor(crop_image)
+                # if random.uniform(0, 1) > 0.5:
+                #     crop_image=pixel_jitter(crop_image,15)
+                # if random.uniform(0, 1) > 0.5:
+                #     crop_image = Img_dropout(crop_image, 0.2)
+                #
+                # if random.uniform(0, 1) > 0.5:
+                #     crop_image = Padding_aug(crop_image, 0.3)
 
 
             #######head pose

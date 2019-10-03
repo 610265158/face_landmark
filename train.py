@@ -47,10 +47,10 @@ def main():
 
     train_dataset=tf.data.Dataset.from_generator(train_ds,
                                                  output_types=(tf.float32,tf.float32),
-                                                 output_shapes=([None,None,None],[cfg.MODEL.out_channel]))
+                                                 output_shapes=([160,160,3],[cfg.MODEL.out_channel]))
     test_dataset = tf.data.Dataset.from_generator(test_ds,
                                                   output_types=(tf.float32,tf.float32),
-                                                  output_shapes=([None,None,None],[cfg.MODEL.out_channel]))
+                                                  output_shapes=([160,160,3],[cfg.MODEL.out_channel]))
 
     train_dataset = train_dataset.batch(cfg.TRAIN.batch_size).prefetch(cfg.TRAIN.prefetch_size)
     test_dataset = test_dataset.batch(cfg.TRAIN.batch_size).prefetch(cfg.TRAIN.prefetch_size)
