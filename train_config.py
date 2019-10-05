@@ -51,10 +51,9 @@ config.DATA.val_txt_path='val.json'
 config.DATA.PIXEL_MEAN = [123., 116., 103.]             ###rgb
 config.DATA.PIXEL_STD = [58., 57., 57.]                 ### no use, just sub mean
 
-# config.DATA.base_extend_range=[0.2,0.3]                 ###extand
-# config.DATA.scale_factor=[0.7,1.35]                     ###scales
-config.DATA.base_extend_range=[0.0,0.0]                 ###extand
-config.DATA.scale_factor=[1.0,1.]
+config.DATA.base_extend_range=[0.2,0.3]                 ###extand
+config.DATA.scale_factor=[0.7,1.35]                     ###scales
+
 config.DATA.symmetry = [(0, 16), (1, 15), (2, 14), (3, 13), (4, 12), (5, 11), (6, 10), (7, 9), (8, 8),
             (17, 26), (18, 25), (19, 24), (20, 23), (21, 22),
             (31, 35), (32, 34),

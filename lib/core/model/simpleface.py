@@ -36,6 +36,8 @@ class SimpleFaceHead(tf.keras.Model):
 
 
 
+import tensorflow_core.python.keras.applications.resnet
+
 
 class SimpleFace(tf.keras.Model):
 

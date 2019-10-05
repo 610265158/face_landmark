@@ -115,24 +115,23 @@ class Train(object):
     Args:
       inputs: one batch input.
     """
-    tf.keras.backend.set_learning_phase(True)
 
     image, label = inputs
 
-    predictions = self.model.predict(image)
+    predictions = self.model(image,training=False)
 
-    img = np.array(image[0], dtype=np.uint8)
-    landmark = np.array(predictions[0][0:136]).reshape([-1, 2])
+    # img = np.array(image[0], dtype=np.uint8)
+    # landmark = np.array(predictions[0][0:136]).reshape([-1, 2])
+    #
+    # for _index in range(landmark.shape[0]):
+    #   x_y = landmark[_index]
+    #
+    #   cv2.circle(img, center=(int(x_y[0] * 160),
+    #                           int(x_y[1] * 160)),
+    #              color=(255, 122, 122), radius=1, thickness=2)
+    #
+    # cv2.imwrite('tmp.jpg', img)
 
-    for _index in range(landmark.shape[0]):
-      x_y = landmark[_index]
-
-      cv2.circle(img, center=(int(x_y[0] * 160),
-                              int(x_y[1] * 160)),
-                 color=(255, 122, 122), radius=1, thickness=2)
-
-    cv2.imwrite('tmp.jpg', img)
-    #print(self.model.losses)
     unscaled_test_loss = self.compute_loss(label, predictions)
 
     return unscaled_test_loss
@@ -208,11 +207,14 @@ class Train(object):
 
       logger.info(training_massage)
 
-      current_model_saved_name=os.path.join(cfg.MODEL.model_path,'epoch_%d_val_loss%.6f'%(epoch,test_total_loss / num_test_batches))
 
-      #tf.saved_model.save(self.model, current_model_saved_name)
-      self.model.save(current_model_saved_name)
       #### save the model every end of epoch
+      current_model_saved_name=os.path.join(cfg.MODEL.model_path,
+                                            'epoch_%d_val_loss%.6f_keras.h5'%(epoch,test_total_loss / num_test_batches))
+
+
+      self.model.save_weights(current_model_saved_name)
+
 
 
     return (train_total_loss / num_train_batches,

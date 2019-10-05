@@ -18,12 +18,17 @@ train_dataset = tf.data.Dataset.from_generator(ds,
                                                output_shapes=([None, None, None], [cfg.MODEL.out_channel]))
 
 
+saved_model_path='./model/epoch_3_val_loss91.378777_keras.h5'
 
-#face=SimpleFace()
+###build model
+face=SimpleFace()
+image=np.zeros(shape=(1,160,160,3),dtype=np.float32)
+face(image)
 
+face.load_weights(saved_model_path)
 
-saved_model_path='./model/epoch_4_val_loss108.853745'
-face = tf.keras.models.load_model(saved_model_path)
+# saved_model_path='./model/epoch_4_val_loss108.853745'
+# face = tf.keras.models.load_model(saved_model_path)
 
 
 
@@ -32,8 +37,8 @@ for images, labels in train_dataset:
     img_show = np.array(images)
 
     images=np.expand_dims(images,axis=0)
-    tf.keras.backend.set_learning_phase(False)
-    res=face.predict(images)
+    res=face(images,training=False)
+
     print(res)
 
     img_show=img_show.astype(np.uint8)
