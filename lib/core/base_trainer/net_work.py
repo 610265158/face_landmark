@@ -34,9 +34,6 @@ class Train(object):
     self.strategy = strategy
 
 
-
-
-
     self.loss_object = self.loss_obj
 
 
@@ -46,6 +43,9 @@ class Train(object):
       self.optimizer = tf.keras.optimizers.SGD(learning_rate=0.001,momentum=0.9)
 
     self.model = model
+
+
+
 
     ###control vars
     self.iter_num=0
@@ -90,6 +90,18 @@ class Train(object):
     with tf.GradientTape() as tape:
       predictions = self.model(image, training=True)
 
+      # img = np.array(image[0], dtype=np.uint8)
+      # landmark = np.array(predictions[0][0:136]).reshape([-1, 2])
+      #
+      # for _index in range(landmark.shape[0]):
+      #   x_y = landmark[_index]
+      #
+      #   cv2.circle(img, center=(int(x_y[0] * 160),
+      #                           int(x_y[1] * 160)),
+      #              color=(255, 122, 122), radius=1, thickness=2)
+      #
+      # cv2.imwrite('tmp.jpg',img)
+
       loss = self.compute_loss(label, predictions)
 
     gradients = tape.gradient(loss, self.model.trainable_variables)
@@ -103,10 +115,25 @@ class Train(object):
     Args:
       inputs: one batch input.
     """
+    tf.keras.backend.set_learning_phase(True)
+
     image, label = inputs
+
     predictions = self.model.predict(image)
-    unscaled_test_loss = self.loss_object(label, predictions) + sum(
-        self.model.losses)
+
+    img = np.array(image[0], dtype=np.uint8)
+    landmark = np.array(predictions[0][0:136]).reshape([-1, 2])
+
+    for _index in range(landmark.shape[0]):
+      x_y = landmark[_index]
+
+      cv2.circle(img, center=(int(x_y[0] * 160),
+                              int(x_y[1] * 160)),
+                 color=(255, 122, 122), radius=1, thickness=2)
+
+    cv2.imwrite('tmp.jpg', img)
+    #print(self.model.losses)
+    unscaled_test_loss = self.compute_loss(label, predictions)
 
     return unscaled_test_loss
 
@@ -125,7 +152,7 @@ class Train(object):
     def distributed_train_epoch(ds):
       total_loss = 0.0
       num_train_batches = 0.0
-
+      #tf.keras.backend.set_learning_phase(True)
       for one_batch in ds:
 
         start=time.time()
@@ -148,6 +175,7 @@ class Train(object):
       return total_loss, num_train_batches
 
     def distributed_test_epoch(ds):
+      #tf.keras.backend.set_learning_phase(False)
       total_loss=0.
       num_test_batches = 0.0
       for one_batch in ds:

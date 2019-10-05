@@ -17,18 +17,19 @@ from lib.core.model.shufflenet_plus import ShuffleNetPlus
 
 
 class SimpleFaceHead(tf.keras.Model):
-    def __init__(self,):
+    def __init__(self,output_size,kernel_regularizer=None):
         super(SimpleFaceHead, self).__init__()
 
-        self.output_size=cfg.MODEL.out_channel
+        self.output_size=output_size
 
         self.conv=tf.keras.layers.Dense(self.output_size,
-                                            use_bias=True)
+                                        use_bias=True,
+                                        kernel_regularizer=kernel_regularizer)
 
 
     def call(self, inputs, training=False):
 
-        output=self.conv(inputs)
+        output=self.conv(inputs,training=training)
 
         return output
 
@@ -41,9 +42,11 @@ class SimpleFace(tf.keras.Model):
     def __init__(self):
         super(SimpleFace, self).__init__()
 
-        self.backbone=ShuffleNetPlus()
+        self.backbone=ShuffleNetPlus(model_size='Small',
+                                     kernel_regularizer=tf.keras.regularizers.l2(cfg.TRAIN.weight_decay_factor))
 
-        self.head=SimpleFaceHead()
+        self.head=SimpleFaceHead(output_size=cfg.MODEL.out_channel,
+                                 kernel_regularizer=tf.keras.regularizers.l2(cfg.TRAIN.weight_decay_factor))
 
         self.pool1=tf.keras.layers.GlobalAveragePooling2D()
         self.pool2 = tf.keras.layers.GlobalAveragePooling2D()

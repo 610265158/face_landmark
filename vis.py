@@ -12,7 +12,7 @@ import cv2
 from train_config import config as cfg
 cfg.TRAIN.batch_size=1
 
-ds = FaceKeypointDataIter(cfg.DATA.root_path,cfg.DATA.train_txt_path,False)
+ds = FaceKeypointDataIter(cfg.DATA.root_path,cfg.DATA.train_txt_path,True)
 train_dataset = tf.data.Dataset.from_generator(ds,
                                                output_types=(tf.float32, tf.float32),
                                                output_shapes=([None, None, None], [cfg.MODEL.out_channel]))
@@ -22,7 +22,7 @@ train_dataset = tf.data.Dataset.from_generator(ds,
 #face=SimpleFace()
 
 
-saved_model_path='./model/epoch_2_val_loss220.743835'
+saved_model_path='./model/epoch_4_val_loss108.853745'
 face = tf.keras.models.load_model(saved_model_path)
 
 
@@ -32,7 +32,7 @@ for images, labels in train_dataset:
     img_show = np.array(images)
 
     images=np.expand_dims(images,axis=0)
-
+    tf.keras.backend.set_learning_phase(False)
     res=face.predict(images)
     print(res)
 
@@ -45,8 +45,8 @@ for images, labels in train_dataset:
     for _index in range(landmark.shape[0]):
         x_y = landmark[_index]
         print(x_y)
-        cv2.circle(img_show, center=(int(x_y[0] * config.MODEL.hin),
-                                     int(x_y[1] * config.MODEL.win)),
+        cv2.circle(img_show, center=(int(x_y[0] * 160),
+                                     int(x_y[1] * 160)),
                    color=(255, 122, 122), radius=1, thickness=2)
 
     cv2.imshow('tmp',img_show)
