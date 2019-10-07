@@ -35,6 +35,13 @@ def main():
     strategy = tf.distribute.MirroredStrategy(devices)
     with strategy.scope():
         model=SimpleFace()
+        ##run a time to build
+        image = np.zeros(shape=(1, 160, 160, 3), dtype=np.float32)
+        model(image)
+
+    ### recover weights
+    if cfg.MODEL.pretrained_model is not None:
+        model.load_weights(cfg.MODEL.pretrained_model)
 
     trainer = Train(epochs, enable_function, model, batch_size, strategy)
 
@@ -47,10 +54,10 @@ def main():
 
     train_dataset=tf.data.Dataset.from_generator(train_ds,
                                                  output_types=(tf.float32,tf.float32),
-                                                 output_shapes=([160,160,3],[cfg.MODEL.out_channel]))
+                                                 output_shapes=([None,None,None],[cfg.MODEL.out_channel]))
     test_dataset = tf.data.Dataset.from_generator(test_ds,
                                                   output_types=(tf.float32,tf.float32),
-                                                  output_shapes=([160,160,3],[cfg.MODEL.out_channel]))
+                                                  output_shapes=([None,None,None],[cfg.MODEL.out_channel]))
 
     train_dataset = train_dataset.batch(cfg.TRAIN.batch_size).prefetch(cfg.TRAIN.prefetch_size)
     test_dataset = test_dataset.batch(cfg.TRAIN.batch_size).prefetch(cfg.TRAIN.prefetch_size)

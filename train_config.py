@@ -15,17 +15,13 @@ config.TRAIN.prefetch_size = 50
 
 
 config.TRAIN.num_gpu = 1
-config.TRAIN.batch_size = 16
+config.TRAIN.batch_size = 32
 config.TRAIN.log_interval = 10                  ##10 iters for a log msg
 config.TRAIN.epoch = 200                       #### no actual meaning, just keep training,
-config.TRAIN.train_set_size=972930              ###########u need be sure
-config.TRAIN.val_set_size=107115                ###50562
 
-config.TRAIN.iter_num_per_epoch = config.TRAIN.train_set_size // config.TRAIN.num_gpu // config.TRAIN.batch_size
-config.TRAIN.val_iter=config.TRAIN.val_set_size// config.TRAIN.num_gpu // config.TRAIN.batch_size
 
-config.TRAIN.lr_value_every_step = [0.01,0.001,0.00001,0.000001]          ####lr policy
-config.TRAIN.lr_decay_every_epoch = [20,30,40]
+config.TRAIN.lr_value_every_step = [0.001,0.0001,0.00001,0.000001]          ####lr policy
+config.TRAIN.lr_decay_every_epoch = [20,40,60]
 config.TRAIN.weight_decay_factor = 1.e-5                                    ####l2
 config.TRAIN.train_val_ratio= 0.9                                           ### nouse
 config.TRAIN.vis=False                                                      #### if to check the training data
@@ -33,7 +29,6 @@ config.TRAIN.mix_precision=False                                            ##us
 config.TRAIN.opt='Adam'                                                     ##Adam or SGD
 
 config.MODEL = edict()
-config.MODEL.continue_train=False                                           ##recover from a model completly
 config.MODEL.model_path = './model/'                                        ## save directory
 config.MODEL.hin = 160                                                      # input size during training , 128,160,   depends on
 config.MODEL.win = 160
@@ -71,9 +66,6 @@ weights=[1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,                    
 weights_xy=[[x,x] for x in weights]
 
 config.DATA.weights = np.array(weights_xy,dtype=np.float32).reshape([-1])
-
-
-
 
 
 config.MODEL.pruning=False               ## pruning flag  add l1 reg to bn/beta, no use for tmp

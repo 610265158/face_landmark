@@ -6,6 +6,8 @@ import time
 
 from lib.helper.init import init
 from train_config import config
+
+
 class Keypoints:
 
     def __init__(self,pb):

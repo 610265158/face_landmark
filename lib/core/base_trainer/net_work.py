@@ -38,9 +38,9 @@ class Train(object):
 
 
     if 'Adam' in cfg.TRAIN.opt:
-      self.optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+      self.optimizer = tf.keras.optimizers.Adam(learning_rate=cfg.TRAIN.lr_value_every_step[0])
     else:
-      self.optimizer = tf.keras.optimizers.SGD(learning_rate=0.001,momentum=0.9)
+      self.optimizer = tf.keras.optimizers.SGD(learning_rate=cfg.TRAIN.lr_value_every_step[0],momentum=0.9)
 
     self.model = model
 
@@ -212,7 +212,8 @@ class Train(object):
       current_model_saved_name=os.path.join(cfg.MODEL.model_path,
                                             'epoch_%d_val_loss%.6f_keras.h5'%(epoch,test_total_loss / num_test_batches))
 
-
+      if not os.access(cfg.MODEL.model_path,os.F_OK):
+        os.mkdir(cfg.MODEL.model_path)
       self.model.save_weights(current_model_saved_name)
 
 

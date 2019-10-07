@@ -22,7 +22,7 @@ class SimpleFaceHead(tf.keras.Model):
 
         self.output_size=output_size
 
-        self.conv=tf.keras.layers.Dense(self.output_size,
+        self.conv=tf.keras.layers.Dense(self.output_size-2,
                                         use_bias=True,
                                         kernel_regularizer=kernel_regularizer)
 
@@ -35,10 +35,6 @@ class SimpleFaceHead(tf.keras.Model):
 
 
 
-
-import tensorflow_core.python.keras.applications.resnet
-
-
 class SimpleFace(tf.keras.Model):
 
     def __init__(self):
@@ -47,7 +43,7 @@ class SimpleFace(tf.keras.Model):
         self.backbone=ShuffleNetPlus(model_size='Small',
                                      kernel_regularizer=tf.keras.regularizers.l2(cfg.TRAIN.weight_decay_factor))
 
-        self.head=SimpleFaceHead(output_size=cfg.MODEL.out_channel,
+        self.head=SimpleFaceHead(output_size=cfg.MODEL.out_channel-2,
                                  kernel_regularizer=tf.keras.regularizers.l2(cfg.TRAIN.weight_decay_factor))
 
         self.pool1=tf.keras.layers.GlobalAveragePooling2D()
@@ -82,12 +78,7 @@ class SimpleFace(tf.keras.Model):
 
         return image
 
-    # def load_weights(self,model_path):
-    #     tf.saved_model.load(model_path)
-    #
-    # def inference(self,images,training=False):
-    #     out=self.call(images,training=training)
-    #     return out
+
 
 
 

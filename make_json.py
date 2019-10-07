@@ -5,15 +5,15 @@ import json
 import traceback
 
 '''
-i decide to merge more data from CelebA, so the data anns will be complex, so json maybe a better way. 
+i decide to merge more data from CelebA, the data anns will be complex, so json maybe a better way. 
 '''
 
 
 
 
 
-data_dir='ibug'      ########points to your director,300w
-celeba_data_dir='/home/lz/coco_data/CELEBA'                      ########points to your director,CELEBA
+data_dir='/media/lz/73abf007-eec4-4097-9344-48d64dc62346/coco_data/facelandmark/PUB'      ########points to your director,300w
+celeba_data_dir='/media/lz/73abf007-eec4-4097-9344-48d64dc62346/coco_data/CELEBA'                      ########points to your director,CELEBA
 
 
 train_json='train.json'
