@@ -21,7 +21,6 @@ logger.info('The trainer start')
 setproctitle.setproctitle("face*_*_")
 
 
-
 def main():
 
     epochs=cfg.TRAIN.epoch

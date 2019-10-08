@@ -117,6 +117,9 @@ class FaceKeypointDataIter():
 
 
 
+        self.raw_data_set_size=None
+
+
 
     def __call__(self, *args, **kwargs):
         idxs = np.arange(len(self.lst))
@@ -128,7 +131,9 @@ class FaceKeypointDataIter():
             yield self._map_func(self.lst[k], self.training_flag)
 
     def __len__(self):
-        return len(self.lst)
+        assert self.raw_data_set_size is not None
+
+        return self.raw_data_set_size
 
     def balance(self,anns):
         res_anns = copy.deepcopy(anns)
@@ -211,6 +216,7 @@ class FaceKeypointDataIter():
 
         ann_info = data_info(im_root_path, ann_file)
         all_samples = ann_info.get_all_sample()
+        self.raw_data_set_size=len(all_samples)
         balanced_samples = self.balance(all_samples)
         return balanced_samples
 
