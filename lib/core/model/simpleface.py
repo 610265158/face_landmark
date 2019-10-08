@@ -4,17 +4,10 @@ sys.path.append('.')
 import tensorflow as tf
 
 import math
-import numpy as np
 
 from train_config import config as cfg
 
-
-
-
 from lib.core.model.shufflenet_plus import ShuffleNetPlus
-
-
-
 
 class SimpleFaceHead(tf.keras.Model):
     def __init__(self,output_size,kernel_regularizer=None):
@@ -22,7 +15,7 @@ class SimpleFaceHead(tf.keras.Model):
 
         self.output_size=output_size
 
-        self.conv=tf.keras.layers.Dense(self.output_size-2,
+        self.conv=tf.keras.layers.Dense(self.output_size,
                                         use_bias=True,
                                         kernel_regularizer=kernel_regularizer)
 

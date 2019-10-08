@@ -6,7 +6,7 @@
 
 from lib.helper.logger import logger
 from lib.core.base_trainer.net_work import Train
-from lib.dataset.dataietr import FaceKeypointDataIter
+from lib.dataset.dataietr import DataIter
 from lib.core.model.simpleface import SimpleFace
 
 import tensorflow as tf
@@ -29,7 +29,7 @@ def main():
 
     enable_function=False
 
-    devices = ['/device:CPU:{}'.format(i) for i in range(cfg.TRAIN.num_gpu)]
+    devices = ['/device:GPU:{}'.format(i) for i in range(cfg.TRAIN.num_gpu)]
 
 
     strategy = tf.distribute.MirroredStrategy(devices)
@@ -48,19 +48,19 @@ def main():
 
 
 
-    train_ds = FaceKeypointDataIter(cfg.DATA.root_path, cfg.DATA.train_txt_path, True)
-    test_ds = FaceKeypointDataIter(cfg.DATA.root_path, cfg.DATA.val_txt_path, False)
+    train_ds = DataIter(cfg.DATA.root_path, cfg.DATA.train_txt_path, True)
+    test_ds = DataIter(cfg.DATA.root_path, cfg.DATA.val_txt_path, False)
 
 
     train_dataset=tf.data.Dataset.from_generator(train_ds,
                                                  output_types=(tf.float32,tf.float32),
-                                                 output_shapes=([None,None,None],[cfg.MODEL.out_channel]))
+                                                 output_shapes=([None,None,None,None],[None,cfg.MODEL.out_channel]))
     test_dataset = tf.data.Dataset.from_generator(test_ds,
                                                   output_types=(tf.float32,tf.float32),
-                                                  output_shapes=([None,None,None],[cfg.MODEL.out_channel]))
+                                                  output_shapes=([None,None,None,None],[None,cfg.MODEL.out_channel]))
 
-    train_dataset = train_dataset.batch(cfg.TRAIN.batch_size).prefetch(cfg.TRAIN.prefetch_size)
-    test_dataset = test_dataset.batch(cfg.TRAIN.batch_size).prefetch(cfg.TRAIN.prefetch_size)
+    train_dataset = train_dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+    test_dataset = test_dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
     train_dist_dataset = strategy.experimental_distribute_dataset(train_dataset)
     test_dist_dataset = strategy.experimental_distribute_dataset(test_dataset)
