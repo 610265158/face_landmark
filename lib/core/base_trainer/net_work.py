@@ -73,9 +73,10 @@ class Train(object):
     if epoch >= self.lr_decay_every_epoch[2]:
       return self.lr_val_every_epoch[3]
 
-  def compute_loss(self, label, predictions):
+  def compute_loss(self, label, predictions,training=False):
     loss = tf.reduce_sum(self.loss_object(label, predictions))
-    loss += (sum(self.model.losses) * 1. / self.strategy.num_replicas_in_sync)
+    if training:
+      loss += (sum(self.model.losses) * 1. / self.strategy.num_replicas_in_sync)
     return loss
 
   def train_step(self, inputs):
@@ -102,7 +103,7 @@ class Train(object):
       #
       # cv2.imwrite('tmp.jpg',img)
 
-      loss = self.compute_loss(label, predictions)
+      loss = self.compute_loss(label, predictions,training=True)
 
     gradients = tape.gradient(loss, self.model.trainable_variables)
     gradients = [(tf.clip_by_value(grad, -5.0, 5.0))
@@ -122,23 +123,21 @@ class Train(object):
 
     predictions = self.model(image,training=False)
 
-
-
     ### check process
-    img = np.array(image[0], dtype=np.uint8)
-    landmark = np.array(predictions[0][0:136]).reshape([-1, 2])
-
-    for _index in range(landmark.shape[0]):
-      x_y = landmark[_index]
-
-      cv2.circle(img, center=(int(x_y[0] * 160),
-                              int(x_y[1] * 160)),
-                 color=(255, 122, 122), radius=1, thickness=2)
-
-    cv2.imwrite('valtmp.jpg', img)
+    # img = np.array(image[0], dtype=np.uint8)
+    # landmark = np.array(predictions[0][0:136]).reshape([-1, 2])
+    #
+    # for _index in range(landmark.shape[0]):
+    #   x_y = landmark[_index]
+    #
+    #   cv2.circle(img, center=(int(x_y[0] * 160),
+    #                           int(x_y[1] * 160)),
+    #              color=(255, 122, 122), radius=1, thickness=2)
+    #
+    # cv2.imwrite('valtmp.jpg', img)
     ### check process
 
-    unscaled_test_loss = self.compute_loss(label, predictions)
+    unscaled_test_loss = self.compute_loss(label, predictions,training=False)
 
     return unscaled_test_loss
 
@@ -154,7 +153,7 @@ class Train(object):
       train_loss, train_accuracy, test_loss, test_accuracy
     """
 
-    def distributed_train_epoch(ds):
+    def distributed_train_epoch(ds,epoch_num):
       total_loss = 0.0
       num_train_batches = 0.0
       for one_batch in ds:
@@ -170,15 +169,20 @@ class Train(object):
         time_cost_per_batch=time.time()-start
 
         images_per_sec=cfg.TRAIN.batch_size/time_cost_per_batch
+
+
         if self.iter_num%cfg.TRAIN.log_interval==0:
-          logger.info('iter_num: %d, '
+          logger.info('epoch_num: %d, '
+                      'iter_num: %d, '
                       'loss_value: %.6f,  '
-                      'speed: %d images/sec ' \
-                      % (self.iter_num, current_loss,images_per_sec))
+                      'speed: %d images/sec ' % (epoch_num,
+                                                 self.iter_num,
+                                                 current_loss,
+                                                 images_per_sec))
 
       return total_loss, num_train_batches
 
-    def distributed_test_epoch(ds):
+    def distributed_test_epoch(ds,epoch_num):
       total_loss=0.
       num_test_batches = 0.0
       for one_batch in ds:
@@ -201,9 +205,9 @@ class Train(object):
       self.optimizer.learning_rate = self.decay(epoch)
 
       train_total_loss, num_train_batches = distributed_train_epoch(
-          train_dist_dataset)
+          train_dist_dataset,epoch)
       test_total_loss, num_test_batches = distributed_test_epoch(
-          test_dist_dataset)
+          test_dist_dataset,epoch)
 
 
 
@@ -222,6 +226,8 @@ class Train(object):
       #### save the model every end of epoch
       current_model_saved_name=os.path.join(cfg.MODEL.model_path,
                                             'epoch_%d_val_loss%.6f_keras.h5'%(epoch,test_total_loss / num_test_batches))
+
+      logger.info('A model seved to %s' % current_model_saved_name)
 
       if not os.access(cfg.MODEL.model_path,os.F_OK):
         os.mkdir(cfg.MODEL.model_path)
