@@ -23,7 +23,7 @@ class SimpleFaceHead(tf.keras.Model):
 
     def call(self, inputs, training=False):
 
-        output=self.dense(inputs,training=training)
+        output=self.dense(inputs)
 
         return output
 

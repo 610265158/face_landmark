@@ -118,8 +118,8 @@ class Train(object):
 
     image, label = inputs
 
-    predictions = self.model(image,training=False)
-
+    # predictions = self.model(image,training=False)
+    #
     # img = np.array(image[0], dtype=np.uint8)
     # landmark = np.array(predictions[0][0:136]).reshape([-1, 2])
     #

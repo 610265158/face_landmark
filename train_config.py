@@ -9,12 +9,12 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 config.TRAIN = edict()
 #### below are params for dataiter
-config.TRAIN.process_num = 3
+config.TRAIN.process_num = 1
 config.TRAIN.prefetch_size = 20
 ############
 
 config.TRAIN.num_gpu = 1
-config.TRAIN.batch_size = 64
+config.TRAIN.batch_size = 16
 config.TRAIN.log_interval = 10                  ##10 iters for a log msg
 config.TRAIN.epoch = 300                       #### no actual meaning, just keep training,
 

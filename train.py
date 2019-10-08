@@ -28,6 +28,7 @@ def main():
 
     enable_function=False
 
+    ### set gpu memory
     gpus = tf.config.experimental.list_physical_devices('GPU')
     if gpus:
         try:
@@ -39,26 +40,29 @@ def main():
         except RuntimeError as e:
             # Memory growth must be set before GPUs have been initialized
             print(e)
-            
-    devices = ['/device:GPU:{}'.format(i) for i in range(cfg.TRAIN.num_gpu)]
 
 
+    devices = ['/device:CPU:{}'.format(i) for i in range(cfg.TRAIN.num_gpu)]
     strategy = tf.distribute.MirroredStrategy(devices)
+
+    ##build model
     with strategy.scope():
         model=SimpleFace()
         ##run a time to build
         image = np.zeros(shape=(1, 160, 160, 3), dtype=np.float32)
         model(image)
 
-    ### recover weights
+    ###recover weights
     if cfg.MODEL.pretrained_model is not None:
         model.load_weights(cfg.MODEL.pretrained_model)
 
+
+    ###build trainer
     trainer = Train(epochs, enable_function, model, batch_size, strategy)
 
 
 
-
+    ###build dataset
     train_ds = DataIter(cfg.DATA.root_path, cfg.DATA.train_txt_path, True)
     test_ds = DataIter(cfg.DATA.root_path, cfg.DATA.val_txt_path, False)
 
@@ -95,6 +99,9 @@ def main():
                 cv2.imshow('example',example_image)
                 cv2.waitKey(0)
 
+
+
+    ### train
     trainer.custom_loop(train_dist_dataset,
                         test_dist_dataset,
                         strategy)
