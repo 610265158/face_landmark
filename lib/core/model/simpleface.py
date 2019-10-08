@@ -21,12 +21,11 @@ class SimpleFaceHead(tf.keras.Model):
                                         kernel_regularizer=kernel_regularizer)
 
 
-    def call(self, inputs, training=False):
+    def call(self, inputs):
 
         output=self.dense(inputs)
 
         return output
-
 
 
 class SimpleFace(tf.keras.Model):

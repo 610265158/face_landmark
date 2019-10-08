@@ -105,6 +105,8 @@ class Train(object):
       loss = self.compute_loss(label, predictions)
 
     gradients = tape.gradient(loss, self.model.trainable_variables)
+    gradients = [(tf.clip_by_value(grad, -5.0, 5.0))
+                 for grad in gradients]
     self.optimizer.apply_gradients(zip(gradients,
                                        self.model.trainable_variables))
 
@@ -118,19 +120,23 @@ class Train(object):
 
     image, label = inputs
 
-    # predictions = self.model(image,training=False)
-    #
-    # img = np.array(image[0], dtype=np.uint8)
-    # landmark = np.array(predictions[0][0:136]).reshape([-1, 2])
-    #
-    # for _index in range(landmark.shape[0]):
-    #   x_y = landmark[_index]
-    #
-    #   cv2.circle(img, center=(int(x_y[0] * 160),
-    #                           int(x_y[1] * 160)),
-    #              color=(255, 122, 122), radius=1, thickness=2)
-    #
-    # cv2.imwrite('tmp.jpg', img)
+    predictions = self.model(image,training=False)
+
+
+
+    ### check process
+    img = np.array(image[0], dtype=np.uint8)
+    landmark = np.array(predictions[0][0:136]).reshape([-1, 2])
+
+    for _index in range(landmark.shape[0]):
+      x_y = landmark[_index]
+
+      cv2.circle(img, center=(int(x_y[0] * 160),
+                              int(x_y[1] * 160)),
+                 color=(255, 122, 122), radius=1, thickness=2)
+
+    cv2.imwrite('valtmp.jpg', img)
+    ### check process
 
     unscaled_test_loss = self.compute_loss(label, predictions)
 

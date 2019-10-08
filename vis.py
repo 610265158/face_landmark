@@ -19,7 +19,7 @@ train_dataset = tf.data.Dataset.from_generator(ds,
                                                output_shapes=([None, None, None], [cfg.MODEL.out_channel]))
 
 
-saved_model_path='./model/epoch_3_val_loss91.378777_keras.h5'
+saved_model_path='./model/epoch_0_val_lossnan_keras.h5'
 
 ###build model
 face=SimpleFace()
