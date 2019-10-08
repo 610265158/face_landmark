@@ -2,9 +2,6 @@ import tensorflow as tf
 
 from train_config import config as cfg
 
-
-
-@tf.function
 def channel_shuffle(z):
 
     shape = tf.shape(z)
@@ -20,12 +17,6 @@ def channel_shuffle(z):
     x, y = tf.split(z, num_or_size_splits=2, axis=3)
     return x, y
 
-@tf.function
-def h_switch(x):
-
-    x=x*tf.nn.relu6(x+3.)/6.
-    return x
-
 class HS(tf.keras.Model):
 
     def __init__(self):
@@ -33,7 +24,7 @@ class HS(tf.keras.Model):
 
     def call(self, inputs):
 
-        x = h_switch(inputs)
+        x = inputs*tf.nn.relu6(inputs+3.)/6.
 
         return x
 
@@ -49,6 +40,7 @@ class SELayer(tf.keras.Model):
         self.conv2=tf.keras.layers.Conv2D(inplanes,kernel_size=[1,1],strides=1,use_bias=False,kernel_regularizer=kernel_regularizer)
 
 
+        self.attention_act=HS()
     def call(self, inputs, training=False):
 
         se_pool=tf.expand_dims(self.pool1(inputs),axis=1)
@@ -58,7 +50,7 @@ class SELayer(tf.keras.Model):
         se_bn1 = self.bn1(se_conv1,training=training)
         se_conv2 = self.conv2(se_bn1)
 
-        attention=h_switch(se_conv2)
+        attention=self.attention_act(se_conv2)
 
         outputs=inputs*attention
         return outputs

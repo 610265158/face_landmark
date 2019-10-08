@@ -16,14 +16,14 @@ class SimpleFaceHead(tf.keras.Model):
 
         self.output_size=output_size
 
-        self.conv=tf.keras.layers.Dense(self.output_size,
+        self.dense=tf.keras.layers.Dense(self.output_size,
                                         use_bias=True,
                                         kernel_regularizer=kernel_regularizer)
 
 
     def call(self, inputs, training=False):
 
-        output=self.conv(inputs,training=training)
+        output=self.dense(inputs,training=training)
 
         return output
 
@@ -31,19 +31,21 @@ class SimpleFaceHead(tf.keras.Model):
 
 class SimpleFace(tf.keras.Model):
 
-    def __init__(self):
+    def __init__(self,kernel_regularizer=tf.keras.regularizers.l2(cfg.TRAIN.weight_decay_factor)):
         super(SimpleFace, self).__init__()
 
         self.backbone=ShuffleNetPlus(model_size='Small',
-                                     kernel_regularizer=tf.keras.regularizers.l2(cfg.TRAIN.weight_decay_factor))
+                                     kernel_regularizer=kernel_regularizer)
 
         self.head=SimpleFaceHead(output_size=cfg.MODEL.out_channel,
-                                 kernel_regularizer=tf.keras.regularizers.l2(cfg.TRAIN.weight_decay_factor))
+                                 kernel_regularizer=kernel_regularizer)
 
         self.pool1=tf.keras.layers.GlobalAveragePooling2D()
         self.pool2 = tf.keras.layers.GlobalAveragePooling2D()
         self.pool3 = tf.keras.layers.GlobalAveragePooling2D()
 
+
+    @tf.function
     def call(self, inputs, training=False):
         inputs=self.preprocess(inputs)
         net,end_points=self.backbone(inputs,training=training)
@@ -58,7 +60,7 @@ class SimpleFace(tf.keras.Model):
 
         return out_put
 
-    @tf.function
+
     def preprocess(self,image):
 
         #if image.dtype != tf.float32:
@@ -119,19 +121,14 @@ def _wing_loss(landmarks, labels, w=10.0, epsilon=2.0,weights=1.):
     losses=losses*cfg.DATA.weights
     loss = tf.reduce_sum(tf.reduce_mean(losses*weights, axis=[0]))
 
-
-
     return loss
-
 
 def _mse(landmarks, labels,weights=1.):
 
     return tf.reduce_mean(0.5*tf.square(landmarks - labels)*weights)
 
-
 def l1(landmarks, labels):
     return tf.reduce_mean(landmarks - labels)
-
 
 def calculate_loss(predict_keypoints, label_keypoints):
     

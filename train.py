@@ -29,7 +29,7 @@ def main():
 
     enable_function=False
 
-    devices = ['/device:GPU:{}'.format(i) for i in range(cfg.TRAIN.num_gpu)]
+    devices = ['/device:CPU:{}'.format(i) for i in range(cfg.TRAIN.num_gpu)]
 
 
     strategy = tf.distribute.MirroredStrategy(devices)
