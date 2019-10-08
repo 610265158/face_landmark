@@ -4,6 +4,7 @@ sys.path.append('.')
 import tensorflow as tf
 
 import math
+import numpy as np
 
 from train_config import config as cfg
 
@@ -36,7 +37,7 @@ class SimpleFace(tf.keras.Model):
         self.backbone=ShuffleNetPlus(model_size='Small',
                                      kernel_regularizer=tf.keras.regularizers.l2(cfg.TRAIN.weight_decay_factor))
 
-        self.head=SimpleFaceHead(output_size=cfg.MODEL.out_channel-2,
+        self.head=SimpleFaceHead(output_size=cfg.MODEL.out_channel,
                                  kernel_regularizer=tf.keras.regularizers.l2(cfg.TRAIN.weight_decay_factor))
 
         self.pool1=tf.keras.layers.GlobalAveragePooling2D()
@@ -57,13 +58,14 @@ class SimpleFace(tf.keras.Model):
 
         return out_put
 
+    @tf.function
     def preprocess(self,image):
 
         #if image.dtype != tf.float32:
         image = tf.cast(image, tf.float32)
 
         mean = cfg.DATA.PIXEL_MEAN
-        std = np.asarray(cfg.DATA.PIXEL_STD)
+        std = np.array(cfg.DATA.PIXEL_STD)
 
         image_mean = tf.constant(mean, dtype=tf.float32)
         image_invstd = tf.constant(1.0 / std, dtype=tf.float32)
@@ -82,7 +84,6 @@ class SimpleFace(tf.keras.Model):
 
 if __name__=='__main__':
 
-    import numpy as np
 
     model = SimpleFace()
 
@@ -132,20 +133,9 @@ def l1(landmarks, labels):
     return tf.reduce_mean(landmarks - labels)
 
 
-def calculate_loss(predict, labels):
+def calculate_loss(predict_keypoints, label_keypoints):
     
-    
-    
-    weights_keypoint = tf.cast(labels[:, 147],tf.bool)
-    weights_attr = tf.cast(labels[:, 148],tf.bool)
 
-    label_keypoints=tf.boolean_mask(labels,weights_keypoint)
-    predict_keypoints = tf.boolean_mask(predict, weights_keypoint)
-
-    label_attr=tf.boolean_mask(labels,weights_attr)
-    predict_attr = tf.boolean_mask(predict, weights_attr)    
-    
-    
     landmark_label =      label_keypoints[:, 0:136]
     pose_label =          label_keypoints[:, 136:139]
     leye_cls_label =      label_keypoints[:, 139]
@@ -153,12 +143,6 @@ def calculate_loss(predict, labels):
     mouth_cls_label =     label_keypoints[:, 141]
     big_mouth_cls_label = label_keypoints[:, 142]
 
-    eyeglasses_cls_label = label_attr[:, 143]
-    gender_cls_label =     label_attr[:, 144]
-    mouth_slightly_open_cls_label = label_attr[:, 145]
-    smile_cls_label =      label_attr[:, 146]
-
-    
 
     landmark_predict =     predict_keypoints[:, 0:136]
     pose_predict =         predict_keypoints[:, 136:139]
@@ -167,10 +151,7 @@ def calculate_loss(predict, labels):
     mouth_cls_predict =     predict_keypoints[:, 141]
     big_mouth_cls_predict = predict_keypoints[:, 142]
 
-    eyeglasses_cls_predict = predict_attr[:, 143]
-    gender_cls_predict =     predict_attr[:, 144]
-    mouth_slightly_open_cls_predict = predict_attr[:, 145]
-    smile_cls_predict = predict_attr[:, 146]
+
 
 
 
@@ -184,7 +165,7 @@ def calculate_loss(predict, labels):
 
     loss_pose = _mse(pose_predict, pose_label)
 
-    loss=(loss_pose+loss)
+
 
     leye_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=leye_cls_predict,
                                                                       labels=leye_cls_label) )
@@ -198,16 +179,7 @@ def calculate_loss(predict, labels):
 
 
 
-    norm_v=tf.maximum(tf.reduce_sum(tf.cast(weights_attr,tf.float32)),1.)
 
-    eyeglasses_loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(logits=eyeglasses_cls_predict,
-                                                                      labels=eyeglasses_cls_label) )/norm_v
-    gender_loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(logits=gender_cls_predict,
-                                                                       labels=gender_cls_label))/norm_v
-    mouth_slightly_loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(logits=mouth_slightly_open_cls_predict,
-                                                                        labels=mouth_slightly_open_cls_label) )/norm_v
-    smile_loss = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(logits=smile_cls_predict,
-                                                                           labels=smile_cls_label))/norm_v
 
     # ##make crosssentropy
     # leye_cla_correct_prediction = tf.equal(
@@ -236,10 +208,6 @@ def calculate_loss(predict, labels):
     # regularization_losses = tf.add_n(l2_loss, name='l1_loss')
 
 
-
-
-
-
-    return loss+leye_loss+reye_loss+mouth_loss+eyeglasses_loss+gender_loss+mouth_slightly_loss+smile_loss#+regularization_losses
+    return loss+loss_pose+leye_loss+reye_loss+mouth_loss
 
 

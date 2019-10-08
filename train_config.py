@@ -29,7 +29,7 @@ config.MODEL = edict()
 config.MODEL.model_path = './model/'                                        ## save directory
 config.MODEL.hin = 160                                                      # input size during training , 128,160,   depends on
 config.MODEL.win = 160
-config.MODEL.out_channel=136+3+4+4+2    # output vector    68 points , 3 headpose ,4 cls params,(left eye, right eye, mouth, big mouth open)
+config.MODEL.out_channel=136+3+4    # output vector    68 points , 3 headpose ,4 cls params,(left eye, right eye, mouth, big mouth open)
 
 config.MODEL.net_structure='ShuffleNetV2PLUS'
 config.MODEL.pretrained_model=None

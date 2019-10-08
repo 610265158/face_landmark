@@ -4,7 +4,7 @@ from train_config import config as cfg
 
 
 
-
+@tf.function
 def channel_shuffle(z):
 
     shape = tf.shape(z)
@@ -20,7 +20,7 @@ def channel_shuffle(z):
     x, y = tf.split(z, num_or_size_splits=2, axis=3)
     return x, y
 
-
+@tf.function
 def h_switch(x):
 
     x=x*tf.nn.relu6(x+3.)/6.
@@ -31,9 +31,9 @@ class HS(tf.keras.Model):
     def __init__(self):
         super(HS, self).__init__()
 
-    def call(self, inputs, training=None):
+    def call(self, inputs):
 
-        x = inputs * tf.nn.relu6(inputs + 3.) / 6.
+        x = h_switch(inputs)
 
         return x
 

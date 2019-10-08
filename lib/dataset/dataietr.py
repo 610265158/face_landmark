@@ -355,59 +355,50 @@ class FaceKeypointDataIter():
             label = label.reshape([-1]).astype(np.float32)
             cla_label = cla_label.astype(np.float32)
 
+            label = np.concatenate([label, PRY, cla_label], axis=0)
 
 
-            ### becasue 300w has no attr ann so we ignore it
-            attr_label=np.array([-1,-1,-1,-1])
-
-
-            ### index 0 means things come from keypoints, 1 is from celeba
-            weights=np.array([1,0])
-
-            label = np.concatenate([label, PRY, cla_label, attr_label,weights], axis=0)
-
-
-        else:
-            image = cv2.imread(fname, cv2.IMREAD_COLOR)
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-            bbox = np.array(bbox)
-
-            ### random crop and resize
-            crop_image, _ = self.augmentationCropImage(image, bbox, np.array([[0,0]], dtype=np.float).reshape((-1, 2)), is_training)
-
-            if is_training:
-
-                if random.uniform(0, 1) > 0.5:
-                    crop_image, _ = Mirror(crop_image, label=None, symmetry=None)
-                if random.uniform(0, 1) > 0.0:
-                    angle = random.uniform(-45, 45)
-                    crop_image, _ = Rotate_aug(crop_image, label=None, angle=angle)
-
-                if random.uniform(0, 1) > 0.5:
-                    strength = random.uniform(0, 50)
-                    crop_image, _ = Affine_aug(crop_image, strength=strength, label=None)
-
-                if random.uniform(0, 1) > 0.5:
-                    crop_image = self.color_augmentor(crop_image)
-                if random.uniform(0, 1) > 0.5:
-                    crop_image = pixel_jitter(crop_image, 15)
-                if random.uniform(0, 1) > 0.5:
-                    crop_image = Img_dropout(crop_image, 0.2)
-
-                if random.uniform(0, 1) > 0.5:
-                    crop_image = Padding_aug(crop_image, 0.3)
-
-            #######head pose
-
-            crop_image = crop_image.astype(np.float32)
-
-            label=np.zeros(shape=cfg.MODEL.out_channel-2)-1
-            label[-4:]=np.array(attr)
-
-            ### index 0 means things come from keypoints, 1 is from celeba
-            weights = np.array([0, 1])
-
-            label = np.concatenate([label, weights], axis=0)
+        # else:
+        #     image = cv2.imread(fname, cv2.IMREAD_COLOR)
+        #     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        #
+        #     bbox = np.array(bbox)
+        #
+        #     ### random crop and resize
+        #     crop_image, _ = self.augmentationCropImage(image, bbox, np.array([[0,0]], dtype=np.float).reshape((-1, 2)), is_training)
+        #
+        #     if is_training:
+        #
+        #         if random.uniform(0, 1) > 0.5:
+        #             crop_image, _ = Mirror(crop_image, label=None, symmetry=None)
+        #         if random.uniform(0, 1) > 0.0:
+        #             angle = random.uniform(-45, 45)
+        #             crop_image, _ = Rotate_aug(crop_image, label=None, angle=angle)
+        #
+        #         if random.uniform(0, 1) > 0.5:
+        #             strength = random.uniform(0, 50)
+        #             crop_image, _ = Affine_aug(crop_image, strength=strength, label=None)
+        #
+        #         if random.uniform(0, 1) > 0.5:
+        #             crop_image = self.color_augmentor(crop_image)
+        #         if random.uniform(0, 1) > 0.5:
+        #             crop_image = pixel_jitter(crop_image, 15)
+        #         if random.uniform(0, 1) > 0.5:
+        #             crop_image = Img_dropout(crop_image, 0.2)
+        #
+        #         if random.uniform(0, 1) > 0.5:
+        #             crop_image = Padding_aug(crop_image, 0.3)
+        #
+        #     #######head pose
+        #
+        #     crop_image = crop_image.astype(np.float32)
+        #
+        #     label=np.zeros(shape=cfg.MODEL.out_channel-2)-1
+        #     label[-4:]=np.array(attr)
+        #
+        #     ### index 0 means things come from keypoints, 1 is from celeba
+        #     weights = np.array([0, 1])
+        #
+        #     label = np.concatenate([label, weights], axis=0)
 
         return crop_image, label
