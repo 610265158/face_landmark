@@ -72,7 +72,7 @@ class DataIter():
     def build_iter(self):
 
         ds = DataFromGenerator(self.generator)
-        ds = BatchData(ds, self.num_gpu *  self.batch_size)
+        ds = BatchData(ds, self.batch_size)
         ds = MultiProcessPrefetchData(ds, self.prefetch_size, self.process_num)
         ds.reset_state()
         ds = ds.get_data()
@@ -145,7 +145,7 @@ class FaceKeypointDataIter():
                 bbox_width = bbox[2] - bbox[0]
                 bbox_height = bbox[3] - bbox[1]
 
-                if bbox_width < 30 or bbox_height < 30:
+                if bbox_width < 50 or bbox_height < 50:
                     res_anns.remove(ann)
 
                 left_eye_close = np.sqrt(
@@ -186,12 +186,12 @@ class FaceKeypointDataIter():
                         res_anns.append(ann)
                     lar_count += 1
 
-            elif ann['attr'] is not None:
-
-                ###celeba data,
-                if ann['attr'][0]>0:
-                    for i in range(10):
-                        res_anns.append(ann)
+            # elif ann['attr'] is not None:
+            #
+            #     ###celeba data,
+            #     if ann['attr'][0]>0:
+            #         for i in range(10):
+            #             res_anns.append(ann)
 
 
 
