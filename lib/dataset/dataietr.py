@@ -83,11 +83,14 @@ class DataIter():
 
     def __call__(self, *args, **kwargs):
 
-        one_batch=next(self.ds)
-        yield one_batch[0],one_batch[1]
+
+
+        for i in range(self.size):
+            one_batch=next(self.ds)
+            yield one_batch[0],one_batch[1]
 
     def __len__(self):
-        return len(self.generator)
+        return len(self.generator)//self.batch_size
 
     def _map_func(self,dp,is_training):
 
