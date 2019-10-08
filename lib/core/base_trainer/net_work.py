@@ -151,7 +151,6 @@ class Train(object):
     def distributed_train_epoch(ds):
       total_loss = 0.0
       num_train_batches = 0.0
-      #tf.keras.backend.set_learning_phase(True)
       for one_batch in ds:
 
         start=time.time()
@@ -174,7 +173,6 @@ class Train(object):
       return total_loss, num_train_batches
 
     def distributed_test_epoch(ds):
-      #tf.keras.backend.set_learning_phase(False)
       total_loss=0.
       num_test_batches = 0.0
       for one_batch in ds:
@@ -192,6 +190,8 @@ class Train(object):
       distributed_test_epoch = tf.function(distributed_test_epoch)
 
     for epoch in range(self.epochs):
+
+      start=time.time()
       self.optimizer.learning_rate = self.decay(epoch)
 
       train_total_loss, num_train_batches = distributed_train_epoch(
@@ -199,11 +199,16 @@ class Train(object):
       test_total_loss, num_test_batches = distributed_test_epoch(
           test_dist_dataset)
 
+
+
+      time_consume_per_epoch=time.time()-start
       training_massage = 'Epoch: %d, ' \
                          'Train Loss: %.6f, ' \
-                         'Test Loss: %.6f'%(epoch,
-                                            train_total_loss / num_train_batches,
-                                            test_total_loss / num_test_batches)
+                         'Test Loss: %.6f '\
+                         'Time consume: %.2f'%(epoch,
+                                               train_total_loss / num_train_batches,
+                                               test_total_loss / num_test_batches,
+                                               time_consume_per_epoch)
 
       logger.info(training_massage)
 
