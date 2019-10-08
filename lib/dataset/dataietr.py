@@ -110,6 +110,10 @@ class FaceKeypointDataIter():
         self.training_flag = training_flag
         self.shuffle = shuffle
 
+
+        self.raw_data_set_size = None     ##decided by self.parse_file
+
+
         self.color_augmentor = ColorDistort()
 
 
@@ -117,7 +121,7 @@ class FaceKeypointDataIter():
 
 
 
-        self.raw_data_set_size=None
+
 
 
 
