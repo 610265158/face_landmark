@@ -13,7 +13,7 @@ import cv2
 from train_config import config as cfg
 cfg.TRAIN.batch_size=1
 
-ds = FaceKeypointDataIter(cfg.DATA.root_path,cfg.DATA.train_txt_path,True)
+ds = FaceKeypointDataIter(cfg.DATA.root_path,cfg.DATA.val_txt_path,False)
 train_dataset = tf.data.Dataset.from_generator(ds,
                                                output_types=(tf.float32, tf.float32),
                                                output_shapes=([None, None, None], [cfg.MODEL.out_channel]))
@@ -26,12 +26,7 @@ face=SimpleFace()
 image=np.zeros(shape=(1,160,160,3),dtype=np.float32)
 face(image)
 
-#face.load_weights(saved_model_path)
-
-# saved_model_path='./model/epoch_4_val_loss108.853745'
-# face = tf.keras.models.load_model(saved_model_path)
-
-
+face.load_weights(saved_model_path)
 
 
 for images, labels in train_dataset:
