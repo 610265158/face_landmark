@@ -1,6 +1,11 @@
 import tensorflow as tf
 
-from train_config import config as cfg
+def batch_norm():
+
+    return tf.keras.layers.BatchNormalization(fused=True,
+                                              momentum=0.997,
+                                              epsilon=1e-5)
+
 
 def channel_shuffle(z):
 
@@ -30,14 +35,27 @@ class HS(tf.keras.Model):
 
 class SELayer(tf.keras.Model):
 
-    def __init__(self, inplanes,kernel_regularizer=None):
+    def __init__(self,
+                 inplanes,
+                 kernel_regularizer=None,
+                 kernel_initializer='glorot_normal'):
         super(SELayer, self).__init__()
 
         self.pool1=tf.keras.layers.GlobalAveragePooling2D(data_format='channels_last')
 
-        self.conv1=tf.keras.layers.Conv2D(inplanes//4,kernel_size=[1,1],strides=1,use_bias=False,kernel_regularizer=kernel_regularizer)
-        self.bn1=tf.keras.layers.BatchNormalization()
-        self.conv2=tf.keras.layers.Conv2D(inplanes,kernel_size=[1,1],strides=1,use_bias=False,kernel_regularizer=kernel_regularizer)
+        self.conv1=tf.keras.layers.Conv2D(inplanes//4,
+                                          kernel_size=[1,1],
+                                          strides=1,
+                                          use_bias=False,
+                                          kernel_regularizer=kernel_regularizer,
+                                          kernel_initializer=kernel_initializer)
+        self.bn1=batch_norm()
+        self.conv2=tf.keras.layers.Conv2D(inplanes,
+                                          kernel_size=[1,1],
+                                          strides=1,
+                                          use_bias=False,
+                                          kernel_regularizer=kernel_regularizer,
+                                          kernel_initializer=kernel_initializer)
 
 
         self.attention_act=HS()
@@ -56,8 +74,17 @@ class SELayer(tf.keras.Model):
         return outputs
 
 class Shufflenet(tf.keras.Model):
-    def __init__(self, inp, oup, base_mid_channels, *, ksize, stride, activation, useSE,
-                 kernel_regularizer=None):
+    def __init__(self,
+                 inp,
+                 oup,
+                 base_mid_channels,
+                 *,
+                 ksize,
+                 stride,
+                 activation,
+                 useSE,
+                 kernel_regularizer=None,
+                 kernel_initializer='glorot_normal'):
         super(Shufflenet, self).__init__()
         self.stride = stride
         assert stride in [1, 2]
@@ -79,18 +106,20 @@ class Shufflenet(tf.keras.Model):
                                strides=1,
                                padding='valid',
                                use_bias=False,
-                               kernel_regularizer=kernel_regularizer),
-        tf.keras.layers.BatchNormalization(),
+                               kernel_regularizer=kernel_regularizer,
+                               kernel_initializer=kernel_initializer),
+        batch_norm(),
         None,
         ##dw
         tf.keras.layers.SeparableConv2D(base_mid_channels,
-                                                       kernel_size=[1, 1],
-                                                       strides=stride,
-                                                       padding='valid',
-                                                       depth_multiplier=1,
-                                                        use_bias=False,
-                                        kernel_regularizer=kernel_regularizer),
-        tf.keras.layers.BatchNormalization(),
+                                        kernel_size=[1, 1],
+                                        strides=stride,
+                                        padding='valid',
+                                        depth_multiplier=1,
+                                        use_bias=False,
+                                        kernel_regularizer=kernel_regularizer,
+                                        kernel_initializer=kernel_initializer),
+        batch_norm(),
 
         ##pw
         tf.keras.layers.Conv2D(outputs,
@@ -98,8 +127,9 @@ class Shufflenet(tf.keras.Model):
                                strides=1,
                                padding='valid',
                                use_bias=False,
-                               kernel_regularizer=kernel_regularizer),
-        tf.keras.layers.BatchNormalization(),
+                               kernel_regularizer=kernel_regularizer,
+                               kernel_initializer=kernel_initializer),
+        batch_norm(),
         None,
         ]
 
@@ -126,16 +156,18 @@ class Shufflenet(tf.keras.Model):
                                                 padding='same',
                                                 depth_multiplier=1,
                                                 use_bias=False,
-                                                kernel_regularizer=kernel_regularizer),
-                tf.keras.layers.BatchNormalization(),
+                                                kernel_regularizer=kernel_regularizer,
+                                                kernel_initializer=kernel_initializer),
+                batch_norm(),
                 # pw-linear
                 tf.keras.layers.Conv2D(inp,
                                        (1,1),
                                        1,
                                        padding='valid',
                                        use_bias=False,
-                                       kernel_regularizer=kernel_regularizer),
-                tf.keras.layers.BatchNormalization(),
+                                       kernel_regularizer=kernel_regularizer,
+                                       kernel_initializer=kernel_initializer),
+                batch_norm(),
                 None,
             ]
             if activation == 'ReLU':
@@ -166,8 +198,16 @@ class Shufflenet(tf.keras.Model):
 
 class Shuffle_Xception(tf.keras.Model):
 
-    def __init__(self, inp, oup, base_mid_channels, *, stride, activation, useSE,
-                 kernel_regularizer=None):
+    def __init__(self,
+                 inp,
+                 oup,
+                 base_mid_channels,
+                 *,
+                 stride,
+                 activation,
+                 useSE,
+                 kernel_regularizer=None,
+                 kernel_initializer='glorot_normal'):
         super(Shuffle_Xception, self).__init__()
 
         assert stride in [1, 2]
@@ -182,34 +222,64 @@ class Shuffle_Xception(tf.keras.Model):
 
         branch_main = [
             # dw
-            tf.keras.layers.SeparableConv2D(inp, kernel_size=[3,3], strides=stride, padding='same', use_bias=False,
-                                            kernel_regularizer=kernel_regularizer),
-            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.SeparableConv2D(inp,
+                                            kernel_size=[3,3],
+                                            strides=stride,
+                                            padding='same',
+                                            use_bias=False,
+                                            kernel_regularizer=kernel_regularizer,
+                                            kernel_initializer=kernel_initializer),
+            batch_norm(),
             # pw
 
-            tf.keras.layers.Conv2D(base_mid_channels, (1, 1), 1, padding='valid', use_bias=False,
-                                   kernel_regularizer=kernel_regularizer),
-            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Conv2D(base_mid_channels,
+                                   (1, 1),
+                                   1,
+                                   padding='valid',
+                                   use_bias=False,
+                                   kernel_regularizer=kernel_regularizer,
+                                   kernel_initializer=kernel_initializer),
+            batch_norm(),
             None,
             # dw
-            tf.keras.layers.SeparableConv2D(base_mid_channels, kernel_size=[3, 3], strides=stride, padding='same', use_bias=False,
-                                            kernel_regularizer=kernel_regularizer),
-            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.SeparableConv2D(base_mid_channels,
+                                            kernel_size=[3, 3],
+                                            strides=stride,
+                                            padding='same',
+                                            use_bias=False,
+                                            kernel_regularizer=kernel_regularizer,
+                                            kernel_initializer=kernel_initializer),
+            batch_norm(),
             # pw
 
-            tf.keras.layers.Conv2D(base_mid_channels, (1, 1), 1, padding='valid', use_bias=False,
-                                   kernel_regularizer=kernel_regularizer),
-            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Conv2D(base_mid_channels,
+                                   (1, 1),
+                                   1,
+                                   padding='valid',
+                                   use_bias=False,
+                                   kernel_regularizer=kernel_regularizer,
+                                   kernel_initializer=kernel_initializer),
+            batch_norm(),
             None,
             # dw
 
-            tf.keras.layers.SeparableConv2D(base_mid_channels, kernel_size=[3, 3], strides=stride, padding='same', use_bias=False,
-                                            kernel_regularizer=kernel_regularizer),
-            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.SeparableConv2D(base_mid_channels,
+                                            kernel_size=[3, 3],
+                                            strides=stride,
+                                            padding='same',
+                                            use_bias=False,
+                                            kernel_regularizer=kernel_regularizer,
+                                            kernel_initializer=kernel_initializer),
+            batch_norm(),
             # pw
-            tf.keras.layers.Conv2D(base_mid_channels, (1, 1), 1, padding='valid', use_bias=False,
-                                   kernel_regularizer=kernel_regularizer),
-            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Conv2D(base_mid_channels,
+                                   (1, 1),
+                                   1,
+                                   padding='valid',
+                                   use_bias=False,
+                                   kernel_regularizer=kernel_regularizer,
+                                   kernel_initializer=kernel_initializer),
+            batch_norm(),
             None,
         ]
 
@@ -233,13 +303,23 @@ class Shuffle_Xception(tf.keras.Model):
             branch_proj = [
                 # dw
 
-                tf.keras.layers.SeparableConv2D(inp, kernel_size=[3, 3], strides=stride, padding='same',
-                                                use_bias=False,kernel_regularizer=kernel_regularizer),
-                tf.keras.layers.BatchNormalization(),
+                tf.keras.layers.SeparableConv2D(inp,
+                                                kernel_size=[3, 3],
+                                                strides=stride,
+                                                padding='same',
+                                                use_bias=False,
+                                                kernel_regularizer=kernel_regularizer,
+                                                kernel_initializer=kernel_initializer),
+                batch_norm(),
                 # pw-linear
-                tf.keras.layers.Conv2D(base_mid_channels, kernel_size=(1, 1), strides=1, padding='valid', use_bias=False,
-                                       kernel_regularizer=kernel_regularizer),
-                tf.keras.layers.BatchNormalization(),
+                tf.keras.layers.Conv2D(base_mid_channels,
+                                       kernel_size=(1, 1),
+                                       strides=1,
+                                       padding='valid',
+                                       use_bias=False,
+                                       kernel_regularizer=kernel_regularizer,
+                                       kernel_initializer=kernel_initializer),
+                batch_norm(),
                 None,
             ]
             if activation == 'ReLU':
@@ -258,10 +338,11 @@ class Shuffle_Xception(tf.keras.Model):
             return tf.concat((self.branch_proj(x_proj,training=training),
                               self.branch_main(x,training=training)), 3)
 
-
-
 class ShuffleNetPlus(tf.keras.Model):
-    def __init__(self,model_size='Small',kernel_regularizer=None):
+    def __init__(self,
+                 model_size='Small',
+                 kernel_regularizer=None,
+                 kernel_initializer='glorot_normal'):
 
         super(ShuffleNetPlus, self).__init__()
 
@@ -283,9 +364,14 @@ class ShuffleNetPlus(tf.keras.Model):
         self.first_conv = tf.keras.Sequential(
 
             [
-            tf.keras.layers.Conv2D(input_channel, kernel_size=(3,3), strides=2, padding='same', use_bias=False,
-                                   kernel_regularizer=kernel_regularizer),
-            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Conv2D(input_channel,
+                                   kernel_size=(3,3),
+                                   strides=2,
+                                   padding='same',
+                                   use_bias=False,
+                                   kernel_regularizer=kernel_regularizer,
+                                   kernel_initializer=kernel_initializer),
+            batch_norm(),
             HS()]
         )
 
@@ -310,20 +396,47 @@ class ShuffleNetPlus(tf.keras.Model):
                 archIndex += 1
                 if blockIndex == 0:
                     print('Shuffle3x3')
-                    self.features.append(Shufflenet(inp, outp, base_mid_channels=outp // 2, ksize=3, stride=stride,
-                                                    activation=activation, useSE=useSE,kernel_regularizer=kernel_regularizer))
+                    self.features.append(Shufflenet(inp,
+                                                    outp,
+                                                    base_mid_channels=outp // 2,
+                                                    ksize=3,
+                                                    stride=stride,
+                                                    activation=activation,
+                                                    useSE=useSE,
+                                                    kernel_regularizer=kernel_regularizer,
+                                                    kernel_initializer=kernel_initializer))
                 elif blockIndex == 1:
                     print('Shuffle5x5')
-                    self.features.append(Shufflenet(inp, outp, base_mid_channels=outp // 2, ksize=5, stride=stride,
-                                                    activation=activation, useSE=useSE,kernel_regularizer=kernel_regularizer))
+                    self.features.append(Shufflenet(inp,
+                                                    outp,
+                                                    base_mid_channels=outp // 2,
+                                                    ksize=5,
+                                                    stride=stride,
+                                                    activation=activation,
+                                                    useSE=useSE,
+                                                    kernel_regularizer=kernel_regularizer,
+                                                    kernel_initializer=kernel_initializer))
                 elif blockIndex == 2:
                     print('Shuffle7x7')
-                    self.features.append(Shufflenet(inp, outp, base_mid_channels=outp // 2, ksize=7, stride=stride,
-                                                    activation=activation, useSE=useSE,kernel_regularizer=kernel_regularizer))
+                    self.features.append(Shufflenet(inp,
+                                                    outp,
+                                                    base_mid_channels=outp // 2,
+                                                    ksize=7,
+                                                    stride=stride,
+                                                    activation=activation,
+                                                    useSE=useSE,
+                                                    kernel_regularizer=kernel_regularizer,
+                                                    kernel_initializer=kernel_initializer))
                 elif blockIndex == 3:
                     print('Xception')
-                    self.features.append(Shuffle_Xception(inp, outp, base_mid_channels=outp // 2, stride=stride,
-                                                          activation=activation, useSE=useSE,kernel_regularizer=kernel_regularizer))
+                    self.features.append(Shuffle_Xception(inp,
+                                                          outp,
+                                                          base_mid_channels=outp // 2,
+                                                          stride=stride,
+                                                          activation=activation,
+                                                          useSE=useSE,
+                                                          kernel_regularizer=kernel_regularizer,
+                                                          kernel_initializer=kernel_initializer))
                 else:
                     raise NotImplementedError
                 input_channel = output_channel

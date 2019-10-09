@@ -19,7 +19,7 @@ train_dataset = tf.data.Dataset.from_generator(ds,
                                                output_shapes=([None, None, None], [cfg.MODEL.out_channel]))
 
 
-saved_model_path='./model/epoch_0_val_lossnan_keras.h5'
+saved_model_path='./model/epoch_0_val_loss278.377289_keras.h5'
 
 ###build model
 face=SimpleFace()
@@ -34,7 +34,7 @@ for images, labels in train_dataset:
 
     images=np.expand_dims(images,axis=0)
     start=time.time()
-    res=face(images,training=False)
+    res=face(images,training=True)
     print('xxxx',time.time()-start)
     #print(res)
 
