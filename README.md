@@ -1,9 +1,10 @@
 # face_landmark
-A simple face aligment method
+A simple face aligment method, based on tensorflow2.0
 
 
 ## introduction
-A simple face aligment method based on tensorflow. 
+This is the tensorflow2.0 branch, if u need to work on tf1 switch to branch tf1, it still work.
+ 
 It is simple and flexible, trained with wingloss , multi task learning, also with data augmentation based on headpose and face attributes(eyes state and mouth state).
 
 [CN blog](https://blog.csdn.net/qq_35606924/article/details/99711208)
@@ -29,7 +30,7 @@ pretrained model:
 
 ## requirment
 
-+ tensorflow1.14    (tensorflow 1.14 at least if mix_precision turns on)
++ tensorflow2.0    (tensorflow 1.14 at least if mix_precision turns on)
 
 + tensorpack (for data provider)
 
@@ -63,36 +64,19 @@ pretrained model:
 │   └── trainset
 ```
 
-2. run ` python make_list.py` produce train.txt and val.txt
-(if u like train u own data, u should prepare the data like this:
-`****.jpg| x1 y1 x2 y2 x3 y3...` 
-
+2. run ` python make_json.py` produce train.json and val.json
+(if u like train u own data, please read the json produced , it is quite simple)
 
 3. then, run:  `python train.py`
 
-4. by default it trained with shufflenetv2_1.0, if u like want train with resnet,do as follow:
+4. by default it trained with shufflenetv2_1.0
 
-     4.1 download pretrained model [resnet50](http://download.tensorflow.org/models/resnet_v1_50_2016_08_28.tar.gz)
-    
-     4.2 change train_config as config.MODEL.net_structure='resnet_v1_50',config.MODEL.pretrained_model='resnet_v1_50.ckpt',
-        it uses the first three blocks, so it is still fast, a pruning may achieve a better one.
-
-
-
-
-
-
-
-### convert model
-After training, convert the model to pb file and visualization.
-
-run `python tools/auto_freeze.py` produce keypoint.pb
 
 
 ### visualization
 
 ```
-python vis.py
+python vis.py --model yourmodel.h5
 
 ```
 
@@ -106,9 +90,8 @@ python vis.py
   [pappa_pig_face_engine](github.com/610265158/Peppa_Pig_Face_Engine)
 
 
-- [x]  2. train with resnet     
+- [ ] Train with resnet     
 
-- [ ]  then pruning resnet, it should be faster.
 
 
 

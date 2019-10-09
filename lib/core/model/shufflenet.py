@@ -1,7 +1,6 @@
 import tensorflow as tf
 
 def batch_norm():
-
     return tf.keras.layers.BatchNormalization(fused=True,
                                               momentum=0.997,
                                               epsilon=1e-5)
@@ -126,7 +125,6 @@ class ShufflenetBlock(tf.keras.Model):
         self.down_sample=basic_unit_with_downsampling(output_size//2,
                                                       kernel_regularizer=kernel_regularizer,
                                                       kernel_initializer=kernel_initializer)
-
 
         self.basic_units=[basic_unit(output_size//2,
                                          kernel_regularizer=kernel_regularizer,
