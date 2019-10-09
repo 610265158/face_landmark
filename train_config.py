@@ -16,7 +16,7 @@ config.TRAIN.prefetch_size = 20
 config.TRAIN.num_gpu = 1
 config.TRAIN.batch_size = 64
 config.TRAIN.log_interval = 10                  ##10 iters for a log msg
-config.TRAIN.epoch = 200                       #### no actual meaning, just keep training,
+config.TRAIN.epoch = 250                       #### no actual meaning, just keep training,
 
 config.TRAIN.lr_value_every_step = [0.001,0.0001,0.00001,0.000001]          ####lr policy
 config.TRAIN.lr_decay_every_epoch = [100,150,200]
@@ -31,7 +31,7 @@ config.MODEL.hin = 160                                                      # in
 config.MODEL.win = 160
 config.MODEL.out_channel=136+3+4    # output vector    68 points , 3 headpose ,4 cls params,(left eye, right eye, mouth, big mouth open)
 
-config.MODEL.net_structure='ShuffleNetV2PLUS'
+config.MODEL.net_structure='ShuffleNetV2'
 config.MODEL.pretrained_model=None
 config.DATA = edict()
 

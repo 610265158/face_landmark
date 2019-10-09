@@ -91,17 +91,17 @@ class Train(object):
     with tf.GradientTape() as tape:
       predictions = self.model(image, training=True)
 
-      img = np.array(image[0], dtype=np.uint8)
-      landmark = np.array(predictions[0][0:136]).reshape([-1, 2])
-
-      for _index in range(landmark.shape[0]):
-        x_y = landmark[_index]
-
-        cv2.circle(img, center=(int(x_y[0] * 160),
-                                int(x_y[1] * 160)),
-                   color=(255, 122, 122), radius=1, thickness=2)
-
-      cv2.imwrite('tmp.jpg',img)
+      # img = np.array(image[0], dtype=np.uint8)
+      # landmark = np.array(predictions[0][0:136]).reshape([-1, 2])
+      #
+      # for _index in range(landmark.shape[0]):
+      #   x_y = landmark[_index]
+      #
+      #   cv2.circle(img, center=(int(x_y[0] * 160),
+      #                           int(x_y[1] * 160)),
+      #              color=(255, 122, 122), radius=1, thickness=2)
+      #
+      # cv2.imwrite('tmp.jpg',img)
 
       loss = self.compute_loss(label, predictions,training=True)
 
@@ -123,18 +123,18 @@ class Train(object):
 
     predictions = self.model(image,training=False)
 
-    ## check process
-    img = np.array(image[0], dtype=np.uint8)
-    landmark = np.array(predictions[0][0:136]).reshape([-1, 2])
-
-    for _index in range(landmark.shape[0]):
-      x_y = landmark[_index]
-
-      cv2.circle(img, center=(int(x_y[0] * 160),
-                              int(x_y[1] * 160)),
-                 color=(255, 122, 122), radius=1, thickness=2)
-
-    cv2.imwrite('valtmp.jpg', img)
+    # ## check process
+    # img = np.array(image[0], dtype=np.uint8)
+    # landmark = np.array(predictions[0][0:136]).reshape([-1, 2])
+    #
+    # for _index in range(landmark.shape[0]):
+    #   x_y = landmark[_index]
+    #
+    #   cv2.circle(img, center=(int(x_y[0] * 160),
+    #                           int(x_y[1] * 160)),
+    #              color=(255, 122, 122), radius=1, thickness=2)
+    #
+    # cv2.imwrite('valtmp.jpg', img)
     ## check process
 
     unscaled_test_loss = self.compute_loss(label, predictions,training=False)

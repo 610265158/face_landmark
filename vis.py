@@ -26,7 +26,7 @@ face=SimpleFace()
 image=np.zeros(shape=(1,160,160,3),dtype=np.float32)
 face(image)
 
-face.load_weights(saved_model_path)
+#face.load_weights(saved_model_path)
 
 
 for images, labels in train_dataset:

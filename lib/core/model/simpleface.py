@@ -9,7 +9,7 @@ import numpy as np
 from train_config import config as cfg
 
 from lib.core.model.shufflenet_plus import ShuffleNetPlus
-
+from lib.core.model.shufflenet import Shufflenet
 class SimpleFaceHead(tf.keras.Model):
     def __init__(self,
                  output_size,
@@ -38,10 +38,17 @@ class SimpleFace(tf.keras.Model):
                  kernel_regularizer=tf.keras.regularizers.l2(cfg.TRAIN.weight_decay_factor),
                  kernel_initializer='glorot_normal'):
         super(SimpleFace, self).__init__()
+        if cfg.MODEL.net_structure=='ShuffleNetV2PLUS':
+            self.backbone=ShuffleNetPlus(model_size='Small',
+                                         kernel_regularizer=kernel_regularizer,
+                                         kernel_initializer=kernel_initializer)
 
-        self.backbone=ShuffleNetPlus(model_size='Small',
-                                     kernel_regularizer=kernel_regularizer,
-                                     kernel_initializer=kernel_initializer)
+
+
+        elif cfg.MODEL.net_structure=='ShuffleNetV2':
+            self.backbone = Shufflenet(model_size=1.0,
+                                       kernel_regularizer=kernel_regularizer,
+                                       kernel_initializer=kernel_initializer)
 
         self.head=SimpleFaceHead(output_size=cfg.MODEL.out_channel,
                                  kernel_regularizer=kernel_regularizer,
