@@ -76,7 +76,7 @@ pretrained model:
 ### visualization
 
 ```
-python vis.py --model yourmodel.h5
+python vis.py --model yourmodel
 
 ```
 

@@ -225,13 +225,14 @@ class Train(object):
 
       #### save the model every end of epoch
       current_model_saved_name=os.path.join(cfg.MODEL.model_path,
-                                            'epoch_%d_val_loss%.6f_keras.h5'%(epoch,test_total_loss / num_test_batches))
+                                            'epoch_%d_val_loss%.6f'%(epoch,test_total_loss / num_test_batches))
 
-      logger.info('A model seved to %s' % current_model_saved_name)
+      logger.info('A model saved to %s' % current_model_saved_name)
 
       if not os.access(cfg.MODEL.model_path,os.F_OK):
         os.mkdir(cfg.MODEL.model_path)
-      self.model.save_weights(current_model_saved_name)
+
+      tf.saved_model.save(self.model,current_model_saved_name)
 
 
 

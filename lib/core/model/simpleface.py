@@ -75,6 +75,35 @@ class SimpleFace(tf.keras.Model):
         return out_put
 
 
+
+
+
+    @tf.function(input_signature=[tf.TensorSpec([None,None,None,None], tf.float32)])
+    def inference(self,images):
+        inputs = self.preprocess(images)
+        net, end_points = self.backbone(inputs, training=False)
+
+        s1 = self.pool1(end_points['layer7'])
+        s2 = self.pool2(end_points['layer15'])
+        s3 = self.pool3(end_points['layer20'])
+
+        multi_scale = tf.concat([s1, s2, s3], 1)
+
+        out_put = self.head(multi_scale, training=False)
+
+
+        landmark=out_put[:,:136]
+        headpose=out_put[:,:136:139]
+        cls=out_put[:,139:]
+
+        res={'landmark':landmark,
+             'headpose':headpose,
+             'cls':cls}
+
+        return res
+
+
+
     def preprocess(self,image):
 
         #if image.dtype != tf.float32:

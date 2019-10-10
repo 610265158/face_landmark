@@ -22,19 +22,14 @@ train_dataset = tf.data.Dataset.from_generator(ds,
 def vis(model):
 
     ###build model
-    face = SimpleFace()
-    image = np.zeros(shape=(1, 160, 160, 3), dtype=np.float32)
-    face(image)
-    ##load params
-    face.load_weights(model)
-
+    face = tf.saved_model.load(model)
 
     for images, labels in train_dataset:
         img_show = np.array(images)
 
         images=np.expand_dims(images,axis=0)
         start=time.time()
-        res=face(images,training=True)
+        res=face.inference(images)
         print('xxxx',time.time()-start)
         #print(res)
 
@@ -42,7 +37,7 @@ def vis(model):
 
         img_show=cv2.cvtColor(img_show, cv2.COLOR_BGR2RGB)
 
-        landmark = np.array(res[0][0:136]).reshape([-1, 2])
+        landmark = np.array(res['landmark'][0]).reshape([-1, 2])
 
         for _index in range(landmark.shape[0]):
             x_y = landmark[_index]

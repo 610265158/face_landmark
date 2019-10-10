@@ -14,12 +14,12 @@ config.TRAIN.prefetch_size = 20
 ############
 
 config.TRAIN.num_gpu = 1
-config.TRAIN.batch_size = 64
+config.TRAIN.batch_size = 128
 config.TRAIN.log_interval = 10                  ##10 iters for a log msg
 config.TRAIN.epoch = 250                       #### no actual meaning, just keep training,
 
 config.TRAIN.lr_value_every_step = [0.001,0.0001,0.00001,0.000001]          ####lr policy
-config.TRAIN.lr_decay_every_epoch = [100,150,200]
+config.TRAIN.lr_decay_every_epoch = [40,100,150]
 config.TRAIN.weight_decay_factor = 1.e-5                                    ####l2
 config.TRAIN.vis=False                                                      #### if to check the training data
 config.TRAIN.mix_precision=False                                            ##use mix precision to speedup, tf1.14 at least
