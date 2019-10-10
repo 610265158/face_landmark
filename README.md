@@ -4,6 +4,9 @@ A simple face aligment method
 
 ## introduction
 A simple face aligment method based on tensorflow. 
+
+**CAUTION: this is the tensorflow1 branch, if you want to try tensorflow2, please switch to master branch**
+
 It is simple and flexible, trained with wingloss , multi task learning, also with data augmentation based on headpose and face attributes(eyes state and mouth state).
 
 [CN blog](https://blog.csdn.net/qq_35606924/article/details/99711208)
