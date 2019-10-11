@@ -24,7 +24,6 @@ class SimpleFaceHead(tf.keras.Model):
                                         kernel_regularizer=kernel_regularizer,
                                          kernel_initializer=kernel_initializer )
 
-
     def call(self, inputs):
 
         output=self.dense(inputs)
@@ -42,8 +41,6 @@ class SimpleFace(tf.keras.Model):
             self.backbone=ShuffleNetPlus(model_size='Small',
                                          kernel_regularizer=kernel_regularizer,
                                          kernel_initializer=kernel_initializer)
-
-
 
         elif cfg.MODEL.net_structure=='ShuffleNetV2':
             self.backbone = Shufflenet(model_size=1.0,

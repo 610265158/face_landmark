@@ -54,7 +54,7 @@ class Train(object):
     self.lr_val_every_epoch = cfg.TRAIN.lr_value_every_step
 
 
-    ##
+
 
   def loss_obj(self,label,predictions):
       loss=calculate_loss(predictions,label)

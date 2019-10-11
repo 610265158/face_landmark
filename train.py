@@ -1,9 +1,3 @@
-
-
-
-
-
-
 from lib.helper.logger import logger
 from lib.core.base_trainer.net_work import Train
 from lib.dataset.dataietr import DataIter

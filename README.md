@@ -71,12 +71,33 @@ pretrained model:
 
 4. by default it trained with shufflenetv2_1.0
 
+### finetune
 
+1. download the pretrained model keypoints, put it into ./model
+   and the model dir structure is :
+   
+  ```
+   ./model/
+    └── keypoints
+        ├── assets
+        ├── saved_model.pb
+        └── variables
+            ├── variables.data-00000-of-00002
+            ├── variables.data-00001-of-00002
+            └── variables.index
+
+  ```
+
+2. set config.MODEL.pretrained_model='./model/keypoints/variables/variables', in train_config.py
+
+3. adjust the lr policy
+
+4. `python train.py`
 
 ### visualization
 
 ```
-python vis.py --model yourmodel
+python vis.py --model ./model/keypoints
 
 ```
 
