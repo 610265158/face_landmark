@@ -79,7 +79,6 @@ pretrained model:
   ```
    ./model/
     └── keypoints
-        ├── assets
         ├── saved_model.pb
         └── variables
             ├── variables.data-00000-of-00002
