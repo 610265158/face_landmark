@@ -42,8 +42,9 @@ class SimpleFace(tf.keras.Model):
                                          kernel_regularizer=kernel_regularizer,
                                          kernel_initializer=kernel_initializer)
 
-        elif cfg.MODEL.net_structure=='ShuffleNetV2':
-            self.backbone = Shufflenet(model_size=1.0,
+        elif 'ShuffleNetV2' in cfg.MODEL.net_structure:
+            model_size=cfg.MODEL.net_structure.split('_',1)[-1]
+            self.backbone = Shufflenet(model_size=model_size,
                                        kernel_regularizer=kernel_regularizer,
                                        kernel_initializer=kernel_initializer)
 
@@ -75,7 +76,7 @@ class SimpleFace(tf.keras.Model):
 
 
 
-    @tf.function(input_signature=[tf.TensorSpec([None,None,None,None], tf.float32)])
+    @tf.function(input_signature=[tf.TensorSpec([None,cfg.MODEL.hin,cfg.MODEL.win,3], tf.float32)])
     def inference(self,images):
         inputs = self.preprocess(images)
         net, end_points = self.backbone(inputs, training=False)

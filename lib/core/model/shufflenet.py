@@ -151,7 +151,7 @@ class Shufflenet(tf.keras.Model):
                  kernel_initializer='glorot_normal'):
         super(Shufflenet, self).__init__()
 
-        possibilities = {0.5: 48, 0.75: 96, 1.0: 116, 1.5: 176, 2.0: 224}
+        possibilities = {'0.5': 48, '0.75': 96, '1.0': 116, '1.5': 176, '2.0': 224}
         self.initial_depth = possibilities[model_size]
 
         ### stride eual to 4
