@@ -13,15 +13,13 @@ from lib.core.model.shufflenet import Shufflenet
 class SimpleFaceHead(tf.keras.Model):
     def __init__(self,
                  output_size,
-                 kernel_regularizer=None,
                  kernel_initializer='glorot_normal'):
         super(SimpleFaceHead, self).__init__()
 
         self.output_size=output_size
 
         self.dense=tf.keras.layers.Dense(self.output_size,
-                                        use_bias=True,
-                                        kernel_regularizer=kernel_regularizer,
+                                         use_bias=True,
                                          kernel_initializer=kernel_initializer )
 
     def call(self, inputs):
@@ -33,23 +31,18 @@ class SimpleFaceHead(tf.keras.Model):
 
 class SimpleFace(tf.keras.Model):
 
-    def __init__(self,
-                 kernel_regularizer=tf.keras.regularizers.l2(cfg.TRAIN.weight_decay_factor),
-                 kernel_initializer='glorot_normal'):
+    def __init__(self,kernel_initializer='glorot_normal'):
         super(SimpleFace, self).__init__()
         if cfg.MODEL.net_structure=='ShuffleNetV2PLUS':
             self.backbone=ShuffleNetPlus(model_size='Small',
-                                         kernel_regularizer=kernel_regularizer,
                                          kernel_initializer=kernel_initializer)
 
         elif 'ShuffleNetV2' in cfg.MODEL.net_structure:
             model_size=cfg.MODEL.net_structure.split('_',1)[-1]
             self.backbone = Shufflenet(model_size=model_size,
-                                       kernel_regularizer=kernel_regularizer,
                                        kernel_initializer=kernel_initializer)
 
         self.head=SimpleFaceHead(output_size=cfg.MODEL.out_channel,
-                                 kernel_regularizer=kernel_regularizer,
                                  kernel_initializer=kernel_initializer)
 
         self.pool1=tf.keras.layers.GlobalAveragePooling2D()

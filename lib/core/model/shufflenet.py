@@ -25,7 +25,6 @@ def concat_shuffle_split(x,y):
 class basic_unit(tf.keras.Model):
     def __init__(self,
                  output_size,
-                 kernel_regularizer=None,
                  kernel_initializer='glorot_normal'):
         super(basic_unit, self).__init__()
 
@@ -38,7 +37,6 @@ class basic_unit(tf.keras.Model):
                                                strides=1,
                                                padding='same',
                                                use_bias=False,
-                                               kernel_regularizer=kernel_regularizer,
                                                kernel_initializer=kernel_initializer),
                         batch_norm(),
                         tf.keras.layers.LeakyReLU(),
@@ -48,7 +46,6 @@ class basic_unit(tf.keras.Model):
                                                         strides=1,
                                                         padding='same',
                                                         use_bias=False,
-                                                        kernel_regularizer=kernel_regularizer,
                                                         kernel_initializer=kernel_initializer),
                         batch_norm(),
                         tf.keras.layers.LeakyReLU()
@@ -63,7 +60,6 @@ class basic_unit(tf.keras.Model):
 class basic_unit_with_downsampling(tf.keras.Model):
     def __init__(self,
                  output_size,
-                 kernel_regularizer=None,
                  kernel_initializer='glorot_normal'):
         super(basic_unit_with_downsampling, self).__init__()
 
@@ -75,7 +71,6 @@ class basic_unit_with_downsampling(tf.keras.Model):
                                        strides=1,
                                        padding='same',
                                        use_bias=False,
-                                       kernel_regularizer=kernel_regularizer,
                                        kernel_initializer=kernel_initializer),
                 batch_norm(),
                 tf.keras.layers.LeakyReLU(),
@@ -85,7 +80,6 @@ class basic_unit_with_downsampling(tf.keras.Model):
                                                 strides=2,
                                                 padding='same',
                                                 use_bias=False,
-                                                kernel_regularizer=kernel_regularizer,
                                                 kernel_initializer=kernel_initializer),
                 batch_norm(),
                 tf.keras.layers.LeakyReLU()
@@ -99,7 +93,6 @@ class basic_unit_with_downsampling(tf.keras.Model):
                                             strides=2,
                                             padding='same',
                                             use_bias=False,
-                                            kernel_regularizer=kernel_regularizer,
                                             kernel_initializer=kernel_initializer),
             batch_norm(),
             tf.keras.layers.LeakyReLU()]
@@ -117,17 +110,14 @@ class ShufflenetBlock(tf.keras.Model):
     def __init__(self,
                  output_size,
                  repeat=4,
-                 kernel_regularizer=None,
                  kernel_initializer='glorot_normal'):
         super(ShufflenetBlock, self).__init__()
 
 
         self.down_sample=basic_unit_with_downsampling(output_size//2,
-                                                      kernel_regularizer=kernel_regularizer,
                                                       kernel_initializer=kernel_initializer)
 
         self.basic_units=[basic_unit(output_size//2,
-                                         kernel_regularizer=kernel_regularizer,
                                          kernel_initializer=kernel_initializer
                                          ) for i in range(2, repeat + 1)]
 
@@ -147,7 +137,6 @@ class ShufflenetBlock(tf.keras.Model):
 class Shufflenet(tf.keras.Model):
     def __init__(self,
                  model_size=1.0,
-                 kernel_regularizer=None,
                  kernel_initializer='glorot_normal'):
         super(Shufflenet, self).__init__()
 
@@ -163,7 +152,6 @@ class Shufflenet(tf.keras.Model):
                                        strides=2,
                                        padding='same',
                                        use_bias=False,
-                                       kernel_regularizer=kernel_regularizer,
                                        kernel_initializer=kernel_initializer),
                 batch_norm(),
                 tf.keras.layers.ReLU(),
@@ -173,7 +161,6 @@ class Shufflenet(tf.keras.Model):
                                                strides=2,
                                                padding='same',
                                                use_bias=False,
-                                               kernel_regularizer=kernel_regularizer,
                                                kernel_initializer=kernel_initializer),
                 batch_norm(),
                 tf.keras.layers.ReLU()
@@ -183,15 +170,12 @@ class Shufflenet(tf.keras.Model):
 
         self.block1=ShufflenetBlock(self.initial_depth,
                                      repeat=4,
-                                     kernel_regularizer=kernel_regularizer,
                                      kernel_initializer=kernel_initializer)
         self.block2=ShufflenetBlock(self.initial_depth*2,
                                      repeat=8,
-                                     kernel_regularizer=kernel_regularizer,
                                      kernel_initializer=kernel_initializer)
         self.block3=ShufflenetBlock(self.initial_depth*2*2,
                                      repeat=4,
-                                     kernel_regularizer=kernel_regularizer,
                                      kernel_initializer=kernel_initializer)
 
 

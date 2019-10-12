@@ -37,7 +37,6 @@ class SELayer(tf.keras.Model):
 
     def __init__(self,
                  inplanes,
-                 kernel_regularizer=None,
                  kernel_initializer='glorot_normal'):
         super(SELayer, self).__init__()
 
@@ -47,14 +46,12 @@ class SELayer(tf.keras.Model):
                                           kernel_size=[1,1],
                                           strides=1,
                                           use_bias=False,
-                                          kernel_regularizer=kernel_regularizer,
                                           kernel_initializer=kernel_initializer)
         self.bn1=batch_norm()
         self.conv2=tf.keras.layers.Conv2D(inplanes,
                                           kernel_size=[1,1],
                                           strides=1,
                                           use_bias=False,
-                                          kernel_regularizer=kernel_regularizer,
                                           kernel_initializer=kernel_initializer)
 
 
@@ -83,7 +80,6 @@ class Shufflenet(tf.keras.Model):
                  stride,
                  activation,
                  useSE,
-                 kernel_regularizer=None,
                  kernel_initializer='glorot_normal'):
         super(Shufflenet, self).__init__()
         self.stride = stride
@@ -106,7 +102,6 @@ class Shufflenet(tf.keras.Model):
                                strides=1,
                                padding='valid',
                                use_bias=False,
-                               kernel_regularizer=kernel_regularizer,
                                kernel_initializer=kernel_initializer),
         batch_norm(),
         None,
@@ -117,7 +112,6 @@ class Shufflenet(tf.keras.Model):
                                         padding='valid',
                                         depth_multiplier=1,
                                         use_bias=False,
-                                        kernel_regularizer=kernel_regularizer,
                                         kernel_initializer=kernel_initializer),
         batch_norm(),
 
@@ -127,7 +121,6 @@ class Shufflenet(tf.keras.Model):
                                strides=1,
                                padding='valid',
                                use_bias=False,
-                               kernel_regularizer=kernel_regularizer,
                                kernel_initializer=kernel_initializer),
         batch_norm(),
         None,
@@ -142,7 +135,7 @@ class Shufflenet(tf.keras.Model):
             branch_main[2] = HS()
             branch_main[-1] = HS()
             if useSE:
-                branch_main.append(SELayer(outputs,kernel_regularizer=kernel_regularizer))
+                branch_main.append(SELayer(outputs))
         self.branch_main = tf.keras.Sequential(branch_main)
 
 
@@ -156,7 +149,6 @@ class Shufflenet(tf.keras.Model):
                                                 padding='same',
                                                 depth_multiplier=1,
                                                 use_bias=False,
-                                                kernel_regularizer=kernel_regularizer,
                                                 kernel_initializer=kernel_initializer),
                 batch_norm(),
                 # pw-linear
@@ -165,7 +157,6 @@ class Shufflenet(tf.keras.Model):
                                        1,
                                        padding='valid',
                                        use_bias=False,
-                                       kernel_regularizer=kernel_regularizer,
                                        kernel_initializer=kernel_initializer),
                 batch_norm(),
                 None,
@@ -206,7 +197,6 @@ class Shuffle_Xception(tf.keras.Model):
                  stride,
                  activation,
                  useSE,
-                 kernel_regularizer=None,
                  kernel_initializer='glorot_normal'):
         super(Shuffle_Xception, self).__init__()
 
@@ -227,7 +217,6 @@ class Shuffle_Xception(tf.keras.Model):
                                             strides=stride,
                                             padding='same',
                                             use_bias=False,
-                                            kernel_regularizer=kernel_regularizer,
                                             kernel_initializer=kernel_initializer),
             batch_norm(),
             # pw
@@ -237,7 +226,6 @@ class Shuffle_Xception(tf.keras.Model):
                                    1,
                                    padding='valid',
                                    use_bias=False,
-                                   kernel_regularizer=kernel_regularizer,
                                    kernel_initializer=kernel_initializer),
             batch_norm(),
             None,
@@ -247,7 +235,6 @@ class Shuffle_Xception(tf.keras.Model):
                                             strides=stride,
                                             padding='same',
                                             use_bias=False,
-                                            kernel_regularizer=kernel_regularizer,
                                             kernel_initializer=kernel_initializer),
             batch_norm(),
             # pw
@@ -257,7 +244,6 @@ class Shuffle_Xception(tf.keras.Model):
                                    1,
                                    padding='valid',
                                    use_bias=False,
-                                   kernel_regularizer=kernel_regularizer,
                                    kernel_initializer=kernel_initializer),
             batch_norm(),
             None,
@@ -268,7 +254,6 @@ class Shuffle_Xception(tf.keras.Model):
                                             strides=stride,
                                             padding='same',
                                             use_bias=False,
-                                            kernel_regularizer=kernel_regularizer,
                                             kernel_initializer=kernel_initializer),
             batch_norm(),
             # pw
@@ -277,7 +262,6 @@ class Shuffle_Xception(tf.keras.Model):
                                    1,
                                    padding='valid',
                                    use_bias=False,
-                                   kernel_regularizer=kernel_regularizer,
                                    kernel_initializer=kernel_initializer),
             batch_norm(),
             None,
@@ -295,7 +279,7 @@ class Shuffle_Xception(tf.keras.Model):
 
         if useSE:
             assert activation != 'ReLU'
-            branch_main.append(SELayer(outputs,kernel_regularizer=kernel_regularizer))
+            branch_main.append(SELayer(outputs))
 
         self.branch_main = tf.keras.Sequential(branch_main)
 
@@ -308,7 +292,6 @@ class Shuffle_Xception(tf.keras.Model):
                                                 strides=stride,
                                                 padding='same',
                                                 use_bias=False,
-                                                kernel_regularizer=kernel_regularizer,
                                                 kernel_initializer=kernel_initializer),
                 batch_norm(),
                 # pw-linear
@@ -317,7 +300,6 @@ class Shuffle_Xception(tf.keras.Model):
                                        strides=1,
                                        padding='valid',
                                        use_bias=False,
-                                       kernel_regularizer=kernel_regularizer,
                                        kernel_initializer=kernel_initializer),
                 batch_norm(),
                 None,
@@ -341,7 +323,6 @@ class Shuffle_Xception(tf.keras.Model):
 class ShuffleNetPlus(tf.keras.Model):
     def __init__(self,
                  model_size='Small',
-                 kernel_regularizer=None,
                  kernel_initializer='glorot_normal'):
 
         super(ShuffleNetPlus, self).__init__()
@@ -369,7 +350,6 @@ class ShuffleNetPlus(tf.keras.Model):
                                    strides=2,
                                    padding='same',
                                    use_bias=False,
-                                   kernel_regularizer=kernel_regularizer,
                                    kernel_initializer=kernel_initializer),
             batch_norm(),
             HS()]
@@ -403,7 +383,6 @@ class ShuffleNetPlus(tf.keras.Model):
                                                     stride=stride,
                                                     activation=activation,
                                                     useSE=useSE,
-                                                    kernel_regularizer=kernel_regularizer,
                                                     kernel_initializer=kernel_initializer))
                 elif blockIndex == 1:
                     print('Shuffle5x5')
@@ -414,7 +393,6 @@ class ShuffleNetPlus(tf.keras.Model):
                                                     stride=stride,
                                                     activation=activation,
                                                     useSE=useSE,
-                                                    kernel_regularizer=kernel_regularizer,
                                                     kernel_initializer=kernel_initializer))
                 elif blockIndex == 2:
                     print('Shuffle7x7')
@@ -425,7 +403,6 @@ class ShuffleNetPlus(tf.keras.Model):
                                                     stride=stride,
                                                     activation=activation,
                                                     useSE=useSE,
-                                                    kernel_regularizer=kernel_regularizer,
                                                     kernel_initializer=kernel_initializer))
                 elif blockIndex == 3:
                     print('Xception')
@@ -435,7 +412,6 @@ class ShuffleNetPlus(tf.keras.Model):
                                                           stride=stride,
                                                           activation=activation,
                                                           useSE=useSE,
-                                                          kernel_regularizer=kernel_regularizer,
                                                           kernel_initializer=kernel_initializer))
                 else:
                     raise NotImplementedError

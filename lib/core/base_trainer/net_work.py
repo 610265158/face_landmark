@@ -30,12 +30,10 @@ class Train(object):
   def __init__(self, epochs, enable_function, model, batch_size, strategy):
     self.epochs = epochs
     self.batch_size = batch_size
+    self.l2_regularization=cfg.TRAIN.weight_decay_factor
+
     self.enable_function = enable_function
     self.strategy = strategy
-
-
-    self.loss_object = self.loss_obj
-
 
     if 'Adam' in cfg.TRAIN.opt:
       self.optimizer = tf.keras.optimizers.Adam(learning_rate=cfg.TRAIN.lr_value_every_step[0])
@@ -56,11 +54,6 @@ class Train(object):
 
 
 
-  def loss_obj(self,label,predictions):
-      loss=calculate_loss(predictions,label)
-      return loss
-
-
 
 
   def decay(self, epoch):
@@ -73,11 +66,27 @@ class Train(object):
     if epoch >= self.lr_decay_every_epoch[2]:
       return self.lr_val_every_epoch[3]
 
-  def compute_loss(self, label, predictions,training=False):
-    loss = tf.reduce_sum(self.loss_object(label, predictions))
+
+
+
+
+  def weight_decay_loss(self,):
+
+    regularization_loss=0.
+
+    for variable in self.model.trainable_variables:
+      if 'kernel' in variable.name:
+        regularization_loss+=tf.math.reduce_sum(tf.math.square(variable.numpy()))
+
+    return regularization_loss*self.l2_regularization*0.5
+
+  def compute_loss(self, predictions, label,training=False):
+
+    loss = tf.reduce_sum(calculate_loss(predictions, label))
     if training:
-      loss += (sum(self.model.losses) * 1. / self.strategy.num_replicas_in_sync)
+      loss += (self.weight_decay_loss() * 1. / self.strategy.num_replicas_in_sync)
     return loss
+
 
   def train_step(self, inputs):
     """One train step.
@@ -91,19 +100,7 @@ class Train(object):
     with tf.GradientTape() as tape:
       predictions = self.model(image, training=True)
 
-      # img = np.array(image[0], dtype=np.uint8)
-      # landmark = np.array(predictions[0][0:136]).reshape([-1, 2])
-      #
-      # for _index in range(landmark.shape[0]):
-      #   x_y = landmark[_index]
-      #
-      #   cv2.circle(img, center=(int(x_y[0] * 160),
-      #                           int(x_y[1] * 160)),
-      #              color=(255, 122, 122), radius=1, thickness=2)
-      #
-      # cv2.imwrite('tmp.jpg',img)
-
-      loss = self.compute_loss(label, predictions,training=True)
+      loss = self.compute_loss(predictions,label,training=True)
 
     gradients = tape.gradient(loss, self.model.trainable_variables)
     gradients = [(tf.clip_by_value(grad, -5.0, 5.0))
@@ -123,21 +120,7 @@ class Train(object):
 
     predictions = self.model(image,training=False)
 
-    # ## check process
-    # img = np.array(image[0], dtype=np.uint8)
-    # landmark = np.array(predictions[0][0:136]).reshape([-1, 2])
-    #
-    # for _index in range(landmark.shape[0]):
-    #   x_y = landmark[_index]
-    #
-    #   cv2.circle(img, center=(int(x_y[0] * 160),
-    #                           int(x_y[1] * 160)),
-    #              color=(255, 122, 122), radius=1, thickness=2)
-    #
-    # cv2.imwrite('valtmp.jpg', img)
-    ## check process
-
-    unscaled_test_loss = self.compute_loss(label, predictions,training=False)
+    unscaled_test_loss = self.compute_loss(predictions,label,training=False)
 
     return unscaled_test_loss
 
