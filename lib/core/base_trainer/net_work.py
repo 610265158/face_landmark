@@ -5,15 +5,12 @@ import tensorflow as tf
 
 
 import time
-import numpy as np
-import cv2
 import os
 
 from train_config import config as cfg
 #from lib.dataset.dataietr import DataIter
 
-from lib.core.model.simpleface import SimpleFace
-from lib.core.model.simpleface import calculate_loss
+from lib.core.model.shufflenet.simpleface import calculate_loss
 from lib.helper.logger import logger
 
 

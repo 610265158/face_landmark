@@ -1,7 +1,8 @@
 from lib.helper.logger import logger
 from lib.core.base_trainer.net_work import Train
 from lib.dataset.dataietr import DataIter
-from lib.core.model.simpleface import SimpleFace
+from lib.core.model.shufflenet.simpleface import SimpleFace as SimpleFace_shufflenet
+from lib.core.model.mobilenet.simpleface import SimpleFace as SimpleFace_mobilenet
 
 import tensorflow as tf
 import cv2
@@ -41,7 +42,10 @@ def main():
 
     ##build model
     with strategy.scope():
-        model=SimpleFace()
+        if 'ShuffleNet' in cfg.MODEL.net_structure:
+            model=SimpleFace_shufflenet()
+        else:
+            model = SimpleFace_mobilenet()
         ##run a time to build
         image = np.zeros(shape=(1, 160, 160, 3), dtype=np.float32)
         model(image)

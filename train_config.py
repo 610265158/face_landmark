@@ -16,9 +16,9 @@ config.TRAIN.prefetch_size = 20
 config.TRAIN.num_gpu = 1
 config.TRAIN.batch_size = 128
 config.TRAIN.log_interval = 10                  ##10 iters for a log msg
-config.TRAIN.epoch = 250                       #### no actual meaning, just keep training,
+config.TRAIN.epoch = 250
 
-config.TRAIN.lr_value_every_step = [0.001,0.0001,0.00001,0.000001]          ####lr policy
+config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.00001,0.000001]          ####lr policy
 config.TRAIN.lr_decay_every_epoch = [100,150,200]
 config.TRAIN.weight_decay_factor = 1.e-5                                    ####l2
 config.TRAIN.vis=False                                                      #### if to check the training data
@@ -31,6 +31,7 @@ config.MODEL.hin = 160                                                      # in
 config.MODEL.win = 160
 config.MODEL.out_channel=136+3+4    # output vector    68 points , 3 headpose ,4 cls params,(left eye, right eye, mouth, big mouth open)
 
+#### 'ShuffleNetV2_1.0' 'ShuffleNetV2_0.5' or MobileNetv2,
 config.MODEL.net_structure='ShuffleNetV2_1.0'
 config.MODEL.pretrained_model=None
 config.DATA = edict()
@@ -38,8 +39,8 @@ config.DATA = edict()
 config.DATA.root_path=''
 config.DATA.train_txt_path='train.json'
 config.DATA.val_txt_path='val.json'
-############NOW the model is trained with RGB mode
 
+############the model is trained with RGB mode
 config.DATA.PIXEL_MEAN = [123., 116., 103.]             ###rgb
 config.DATA.PIXEL_STD = [58., 57., 57.]                 ### no use, just sub mean
 
@@ -55,11 +56,11 @@ config.DATA.symmetry = [(0, 16), (1, 15), (2, 14), (3, 13), (4, 12), (5, 11), (6
 
 
 weights=[1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,                                    #####bouding
-                               1.,1.,1.,1.,1.,1.,1.,1.,1.,                                      #####nose
-                               1.5,1.5,1.5,1.5,1.5,       1.5,1.5,1.5,1.5,1.5,                  #####eyebows
-                               1.5,1.5,1.5,1.5,1.5,1.5,    1.5,1.5,1.5,1.5,1.5,1.5,             ####eyes
-                               1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.      #####mouth
-                               ]
+       1.,1.,1.,1.,1.,1.,1.,1.,1.,                                                              #####nose
+       1.5,1.5,1.5,1.5,1.5,       1.5,1.5,1.5,1.5,1.5,                                          #####eyebows
+       1.5,1.5,1.5,1.5,1.5,1.5,    1.5,1.5,1.5,1.5,1.5,1.5,                                     ####eyes
+       1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.                              #####mouth
+       ]
 weights_xy=[[x,x] for x in weights]
 
 config.DATA.weights = np.array(weights_xy,dtype=np.float32).reshape([-1])
