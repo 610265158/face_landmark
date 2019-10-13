@@ -110,7 +110,7 @@ python vis.py --model ./model/keypoints
   [pappa_pig_face_engine](github.com/610265158/Peppa_Pig_Face_Engine)
 
 
-- [ ] Train with resnet     
+- [ ] Train with mobilenet     
 
 
 
