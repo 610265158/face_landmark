@@ -30,7 +30,7 @@ pretrained model:
 
 ## requirment
 
-+ tensorflow2.0    (tensorflow 1.14 at least if mix_precision turns on)
++ tensorflow2.0
 
 + tensorpack (for data provider)
 
