@@ -18,7 +18,7 @@ config.TRAIN.batch_size = 128
 config.TRAIN.log_interval = 10                  ##10 iters for a log msg
 config.TRAIN.epoch = 250
 
-config.TRAIN.lr_value_every_step = [0.00001,0.0001,0.00001,0.000001]          ####lr policy
+config.TRAIN.lr_value_every_step = [0.001,0.0001,0.00001,0.000001]          ####lr policy
 config.TRAIN.lr_decay_every_epoch = [100,150,200]
 config.TRAIN.weight_decay_factor = 1.e-5                                    ####l2
 config.TRAIN.vis=False                                                      #### if to check the training data
