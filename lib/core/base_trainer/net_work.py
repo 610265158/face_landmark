@@ -73,7 +73,7 @@ class Train(object):
 
     for variable in self.model.trainable_variables:
       if 'kernel' in variable.name:
-        regularization_loss+=tf.math.reduce_sum(tf.math.square(variable.numpy()))
+        regularization_loss+=tf.math.reduce_sum(tf.math.square(variable))
 
     return regularization_loss*self.l2_regularization*0.5
 
