@@ -40,7 +40,7 @@ class SimpleFace(tf.keras.Model):
         self.head=SimpleFaceHead(output_size=cfg.MODEL.out_channel,
                                  kernel_initializer=kernel_initializer)
 
-        self.pool1=tf.keras.layers.GlobalAveragePooling2D()
+        self.pool1 = tf.keras.layers.GlobalAveragePooling2D()
         self.pool2 = tf.keras.layers.GlobalAveragePooling2D()
         self.pool3 = tf.keras.layers.GlobalAveragePooling2D()
 

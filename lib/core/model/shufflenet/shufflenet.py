@@ -39,7 +39,7 @@ class basic_unit(tf.keras.Model):
                                                use_bias=False,
                                                kernel_initializer=kernel_initializer),
                         batch_norm(),
-                        tf.keras.layers.LeakyReLU(),
+                        tf.keras.layers.ReLU(),
 
                         tf.keras.layers.SeparableConv2D(output_size,
                                                         kernel_size=(3, 3),
@@ -48,7 +48,7 @@ class basic_unit(tf.keras.Model):
                                                         use_bias=False,
                                                         kernel_initializer=kernel_initializer),
                         batch_norm(),
-                        tf.keras.layers.LeakyReLU()
+                        tf.keras.layers.ReLU()
                     ]
                     )
 
@@ -73,7 +73,7 @@ class basic_unit_with_downsampling(tf.keras.Model):
                                        use_bias=False,
                                        kernel_initializer=kernel_initializer),
                 batch_norm(),
-                tf.keras.layers.LeakyReLU(),
+                tf.keras.layers.ReLU(),
 
                 tf.keras.layers.SeparableConv2D(output_size,
                                                 kernel_size=(3, 3),
@@ -82,7 +82,7 @@ class basic_unit_with_downsampling(tf.keras.Model):
                                                 use_bias=False,
                                                 kernel_initializer=kernel_initializer),
                 batch_norm(),
-                tf.keras.layers.LeakyReLU()
+                tf.keras.layers.ReLU()
             ]
         )
 
@@ -95,7 +95,7 @@ class basic_unit_with_downsampling(tf.keras.Model):
                                             use_bias=False,
                                             kernel_initializer=kernel_initializer),
             batch_norm(),
-            tf.keras.layers.LeakyReLU()]
+            tf.keras.layers.ReLU()]
         )
 
 

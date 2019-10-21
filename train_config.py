@@ -14,7 +14,7 @@ config.TRAIN.prefetch_size = 20
 ############
 
 config.TRAIN.num_gpu = 1
-config.TRAIN.batch_size = 128
+config.TRAIN.batch_size = 96
 config.TRAIN.log_interval = 10                  ##10 iters for a log msg
 config.TRAIN.epoch = 250
 

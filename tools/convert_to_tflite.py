@@ -50,4 +50,4 @@ print(tflite_results)
 
 model=tf.saved_model.load(saved_model_dir)
 tf_results = model.inference(tf.constant(input_data))
-print(tf_results)
+print(tf_results['landmark'])
