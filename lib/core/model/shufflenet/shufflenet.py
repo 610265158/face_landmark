@@ -20,7 +20,17 @@ def concat_shuffle_split(x,y):
     x, y = tf.split(z, num_or_size_splits=2, axis=3)
     return x, y
 
+def concat_shuffle_split_abstract(x, y):
+    x_cp_1 = x[:, :, :, 0::2]
+    y_cp_1 = y[:, :, :, 0::2]
+    x=tf.concat([x_cp_1, y_cp_1], axis=3)
 
+
+    x_cp_2 = x[:, :, :, 1::2]
+    y_cp_2 = y[:, :, :, 1::2]
+    y = tf.concat([x_cp_2, y_cp_2], axis=3)
+
+    return x, y
 
 class basic_unit(tf.keras.Model):
     def __init__(self,
@@ -127,7 +137,7 @@ class ShufflenetBlock(tf.keras.Model):
         x,y=self.down_sample(inputs,training=training)
 
         for uint in self.basic_units:
-            x, y = concat_shuffle_split(x, y)
+            x, y = concat_shuffle_split_abstract(x, y)
             x = uint(x)
         x = tf.concat([x, y], axis=3)
 

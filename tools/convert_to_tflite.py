@@ -10,12 +10,8 @@ save_tf_model="converted_model.tflite"
 converter = tf.lite.TFLiteConverter.from_saved_model(saved_model_dir)
 tflite_model = converter.convert()
 
-
-
 ##write it down
 open(save_tf_model, "wb").write(tflite_model)
-
-
 
 # 加载 TFLite 模型并分配张量（tensor）。
 interpreter = tf.lite.Interpreter(model_content=tflite_model)

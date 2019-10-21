@@ -110,7 +110,7 @@ if __name__=='__main__':
 
     image=np.zeros(shape=(1,160,160,3),dtype=np.float32)
     x=model.inference(image)
-
+    tf.saved_model.save(model,'./model/keypoints')
     start=time.time()
     for i in range(1000):
         x = model.inference(image)
