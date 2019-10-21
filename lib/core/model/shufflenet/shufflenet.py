@@ -174,10 +174,15 @@ class Shufflenet(tf.keras.Model):
         self.block2=ShufflenetBlock(self.initial_depth*2,
                                      repeat=8,
                                      kernel_initializer=kernel_initializer)
-        self.block3=ShufflenetBlock(self.initial_depth*2*2,
-                                     repeat=4,
-                                     kernel_initializer=kernel_initializer)
 
+        if self.initial_depth==48:
+            self.block3=ShufflenetBlock(self.initial_depth*2*2*2,
+                                         repeat=4,
+                                         kernel_initializer=kernel_initializer)
+        else:
+            self.block3 = ShufflenetBlock(self.initial_depth * 2 * 2 ,
+                                          repeat=4,
+                                          kernel_initializer=kernel_initializer)
 
 
     def call(self, inputs, training=False):
@@ -185,7 +190,7 @@ class Shufflenet(tf.keras.Model):
         end_points={}
         x=self.first_conv(inputs,training=training)
 
-        end_points['init'] = x
+        #end_points['init'] = x
 
         x=self.block1(x,training=training)
         end_points['layer7'] = x

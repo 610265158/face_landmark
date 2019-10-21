@@ -62,8 +62,6 @@ class SimpleFace(tf.keras.Model):
 
 
 
-
-
     @tf.function(input_signature=[tf.TensorSpec([None,cfg.MODEL.hin,cfg.MODEL.win,3], tf.float32)])
     def inference(self,images):
         inputs = self.preprocess(images)
@@ -79,7 +77,7 @@ class SimpleFace(tf.keras.Model):
 
 
         landmark=out_put[:,:136]
-        headpose=out_put[:,:136:139]
+        headpose=out_put[:,136:139]
         cls=out_put[:,139:]
 
         res={'landmark':landmark,
@@ -92,23 +90,14 @@ class SimpleFace(tf.keras.Model):
 
     def preprocess(self,image):
 
-        #if image.dtype != tf.float32:
-        image = tf.cast(image, tf.float32)
-
         mean = cfg.DATA.PIXEL_MEAN
-        std = np.array(cfg.DATA.PIXEL_STD)
+        std =  cfg.DATA.PIXEL_STD
 
         image_mean = tf.constant(mean, dtype=tf.float32)
-        image_invstd = tf.constant(1.0 / std, dtype=tf.float32)
-        image = (image - image_mean) * image_invstd
+        image_invstd = tf.constant(std, dtype=tf.float32)
+        image = (image - image_mean) / image_invstd
 
         return image
-
-
-
-
-
-
 
 
 
@@ -116,12 +105,17 @@ class SimpleFace(tf.keras.Model):
 if __name__=='__main__':
 
 
+    import time
     model = SimpleFace()
 
     image=np.zeros(shape=(1,160,160,3),dtype=np.float32)
-    x=model.predict(image)
-    print(x)
-    model.summary()
+    x=model.inference(image)
+
+    start=time.time()
+    for i in range(1000):
+        x = model.inference(image)
+
+    print('xxxyyyy',(time.time()-start)/1000.)
 
 
 
