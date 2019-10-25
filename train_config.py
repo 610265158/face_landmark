@@ -32,7 +32,7 @@ config.MODEL.win = 160
 config.MODEL.out_channel=136+3+4    # output vector    68 points , 3 headpose ,4 cls params,(left eye, right eye, mouth, big mouth open)
 
 #### 'ShuffleNetV2_1.0' 'ShuffleNetV2_0.5' or MobileNetv2,
-config.MODEL.net_structure='ShuffleNetV2_1.0'
+config.MODEL.net_structure='ShuffleNetV2_0.75'
 config.MODEL.pretrained_model=None
 config.DATA = edict()
 
@@ -41,8 +41,8 @@ config.DATA.train_txt_path='train.json'
 config.DATA.val_txt_path='val.json'
 
 ############the model is trained with RGB mode
-config.DATA.PIXEL_MEAN = [123., 116., 103.]             ###rgb
-config.DATA.PIXEL_STD = [58., 57., 57.]                 ### no use, just sub mean
+config.DATA.PIXEL_MEAN = [127., 127., 127.]             ###rgb
+config.DATA.PIXEL_STD = [127., 127., 127.]                 ### no use, just sub mean
 
 config.DATA.base_extend_range=[0.2,0.3]                 ###extand
 config.DATA.scale_factor=[0.7,1.35]                     ###scales

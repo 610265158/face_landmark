@@ -48,11 +48,11 @@ class SimpleFace(tf.keras.Model):
     @tf.function
     def call(self, inputs, training=False):
         inputs=self.preprocess(inputs)
-        net,end_points=self.backbone(inputs,training=training)
+        x1, x2, x3 = self.backbone(inputs, training=training)
 
-        s1 = self.pool1(end_points['layer7'])
-        s2 = self.pool2(end_points['layer15'])
-        s3 = self.pool3(end_points['layer20'])
+        s1 = self.pool1(x1)
+        s2 = self.pool2(x2)
+        s3 = self.pool3(x3)
 
         multi_scale = tf.concat([s1, s2, s3], 1)
 
@@ -65,11 +65,11 @@ class SimpleFace(tf.keras.Model):
     @tf.function(input_signature=[tf.TensorSpec([None,cfg.MODEL.hin,cfg.MODEL.win,3], tf.float32)])
     def inference(self,images):
         inputs = self.preprocess(images)
-        net, end_points = self.backbone(inputs, training=False)
+        x1,x2,x3 = self.backbone(inputs, training=False)
 
-        s1 = self.pool1(end_points['layer7'])
-        s2 = self.pool2(end_points['layer15'])
-        s3 = self.pool3(end_points['layer20'])
+        s1 = self.pool1(x1)
+        s2 = self.pool2(x2)
+        s3 = self.pool3(x3)
 
         multi_scale = tf.concat([s1, s2, s3], 1)
 
@@ -112,10 +112,10 @@ if __name__=='__main__':
     x=model.inference(image)
     tf.saved_model.save(model,'./model/keypoints')
     start=time.time()
-    for i in range(1000):
+    for i in range(100):
         x = model.inference(image)
 
-    print('xxxyyyy',(time.time()-start)/1000.)
+    print('xxxyyyy',(time.time()-start)/100.)
 
 
 

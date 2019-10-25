@@ -150,7 +150,7 @@ class Shufflenet(tf.keras.Model):
                  kernel_initializer='glorot_normal'):
         super(Shufflenet, self).__init__()
 
-        possibilities = {'0.5': 48, '0.75': 96, '1.0': 116, '1.5': 176, '2.0': 224}
+        possibilities = {'0.5': 48, '0.75': 64, '1.0': 116, '1.5': 176, '2.0': 224}
         self.initial_depth = possibilities[model_size]
 
         ### stride eual to 4
@@ -166,14 +166,16 @@ class Shufflenet(tf.keras.Model):
                 batch_norm(),
                 tf.keras.layers.ReLU(),
 
-                tf.keras.layers.SeparableConv2D(32,
-                                               kernel_size=(3, 3),
-                                               strides=2,
-                                               padding='same',
-                                               use_bias=False,
-                                               kernel_initializer=kernel_initializer),
-                batch_norm(),
-                tf.keras.layers.ReLU()
+                tf.keras.layers.MaxPooling2D(pool_size=(3, 3),
+                                             strides=2)
+                # tf.keras.layers.SeparableConv2D(32,
+                #                                kernel_size=(3, 3),
+                #                                strides=2,
+                #                                padding='same',
+                #                                use_bias=False,
+                #                                kernel_initializer=kernel_initializer),
+                # batch_norm(),
+                # tf.keras.layers.ReLU()
             ]
             )
 
@@ -184,35 +186,29 @@ class Shufflenet(tf.keras.Model):
         self.block2=ShufflenetBlock(self.initial_depth*2,
                                      repeat=8,
                                      kernel_initializer=kernel_initializer)
-
-        if self.initial_depth==48:
-            self.block3=ShufflenetBlock(self.initial_depth*2*2*2,
-                                         repeat=4,
-                                         kernel_initializer=kernel_initializer)
-        else:
-            self.block3 = ShufflenetBlock(self.initial_depth * 2 * 2 ,
-                                          repeat=4,
-                                          kernel_initializer=kernel_initializer)
+        self.block3 = ShufflenetBlock(self.initial_depth * 2 *2,
+                                      repeat=4,
+                                      kernel_initializer=kernel_initializer)
 
 
     def call(self, inputs, training=False):
 
-        end_points={}
+
         x=self.first_conv(inputs,training=training)
 
-        #end_points['init'] = x
-
-        x=self.block1(x,training=training)
-        end_points['layer7'] = x
-
-        x=self.block2(x, training=training)
-        end_points['layer15'] = x
-
-        x=self.block3(x, training=training)
-        end_points['layer20'] = x
 
 
-        return x, end_points
+        x1=self.block1(x,training=training)
+
+
+        x2=self.block2(x1, training=training)
+
+
+        x3=self.block3(x2, training=training)
+
+
+
+        return x1,x2,x3
 
 
 
