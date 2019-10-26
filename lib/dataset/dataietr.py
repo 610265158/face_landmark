@@ -283,7 +283,7 @@ class FaceKeypointDataIter():
         fname= dp['image_path']
         keypoints=dp['keypoints']
         bbox =dp['bbox']
-        attr =dp['attr']
+        # attr =dp['attr']
 
 
         #### 300W

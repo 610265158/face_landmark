@@ -54,14 +54,22 @@ class Train(object):
 
 
   def decay(self, epoch):
+
     if epoch < self.lr_decay_every_epoch[0]:
       return self.lr_val_every_epoch[0]
     if epoch >= self.lr_decay_every_epoch[0] and epoch < self.lr_decay_every_epoch[1]:
       return self.lr_val_every_epoch[1]
+
     if epoch >= self.lr_decay_every_epoch[1] and epoch < self.lr_decay_every_epoch[2]:
       return self.lr_val_every_epoch[2]
-    if epoch >= self.lr_decay_every_epoch[2]:
+    if epoch >= self.lr_decay_every_epoch[2] and epoch < self.lr_decay_every_epoch[3]:
       return self.lr_val_every_epoch[3]
+    if epoch >= self.lr_decay_every_epoch[3] and epoch < self.lr_decay_every_epoch[4]:
+      return self.lr_val_every_epoch[4]
+    if epoch >= self.lr_decay_every_epoch[4] and epoch < self.lr_decay_every_epoch[5]:
+      return self.lr_val_every_epoch[5]
+    if epoch >= self.lr_decay_every_epoch[5]:
+      return self.lr_val_every_epoch[6]
 
 
 

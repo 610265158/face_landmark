@@ -4,7 +4,7 @@ import tensorflow as tf
 import time
 import argparse
 
-from lib.core.model.simpleface import SimpleFace
+
 import numpy as np
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
