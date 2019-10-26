@@ -33,9 +33,9 @@ class Train(object):
     self.strategy = strategy
 
     if 'Adam' in cfg.TRAIN.opt:
-      self.optimizer = tf.keras.optimizers.Adam(learning_rate=cfg.TRAIN.lr_value_every_step[0])
+      self.optimizer = tf.keras.optimizers.Adam(learning_rate=cfg.TRAIN.lr_decay_every_epoch[0])
     else:
-      self.optimizer = tf.keras.optimizers.SGD(learning_rate=cfg.TRAIN.lr_value_every_step[0],momentum=0.9)
+      self.optimizer = tf.keras.optimizers.SGD(learning_rate=cfg.TRAIN.lr_decay_every_epoch[0],momentum=0.9)
 
     self.model = model
 
