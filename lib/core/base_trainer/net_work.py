@@ -46,7 +46,7 @@ class Train(object):
     self.iter_num=0
 
     self.lr_decay_every_epoch =cfg.TRAIN.lr_decay_every_epoch
-    self.lr_val_every_epoch = cfg.TRAIN.lr_value_every_step
+    self.lr_val_every_epoch = cfg.TRAIN.lr_value_every_epoch
 
 
 
