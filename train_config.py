@@ -42,7 +42,7 @@ config.DATA.val_txt_path='val.json'
 
 ############the model is trained with RGB mode
 config.DATA.PIXEL_MEAN = [127., 127., 127.]             ###rgb
-config.DATA.PIXEL_STD = [127., 127., 127.]                 ### no use, just sub mean
+config.DATA.PIXEL_STD = [127., 127., 127.]              
 
 config.DATA.base_extend_range=[0.2,0.3]                 ###extand
 config.DATA.scale_factor=[0.7,1.35]                     ###scales
