@@ -23,7 +23,7 @@ this gif is from github.com/610265158/Peppa_Pig_Face_Engine, but it is the same 
 
 pretrained model:
 
-###### shufflenetv2_1.0
+###### shufflenetv2_1.0   tflite is not ok, retrain is needed, sad, i need more time.
 + [baidu disk](https://pan.baidu.com/s/1uuPnrF7h228gLLdf2JTqLQ)  (code rt7p)
 + [google drive](https://drive.google.com/open?id=1Zy5hG7AL69zym4EGwkprW9INnj_5P9a0)
 
