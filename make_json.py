@@ -13,7 +13,7 @@ i decide to merge more data from CelebA, the data anns will be complex, so json 
 
 
 
-data_dir='/media/lz/73abf007-eec4-4097-9344-48d64dc62346/coco_data/facelandmark/PUB'      ########points to your director,300w
+data_dir='300W'      ########points to your director,300w
 #celeba_data_dir='CELEBA'                      ########points to your director,CELEBA
 
 

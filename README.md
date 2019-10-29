@@ -23,8 +23,14 @@ this gif is from github.com/610265158/Peppa_Pig_Face_Engine, but it is the same 
 
 pretrained model:
 
+###### shufflenetv2_1.0
 + [baidu disk](https://pan.baidu.com/s/1uuPnrF7h228gLLdf2JTqLQ)  (code rt7p)
 + [google drive](https://drive.google.com/open?id=1Zy5hG7AL69zym4EGwkprW9INnj_5P9a0)
+
+###### shufflenetv2_0.75   including tflite model, 
++ [baidu disk](https://pan.baidu.com/s/1JxZ9nhFpWCAv5A44yUEcOA)  (code fcdc)
++ [google drive](https://drive.google.com/open?id=1VAJ8qObyRfLmpimoZA6QwrhXjQmgwBXn)
+
 
 
 
@@ -93,6 +99,14 @@ pretrained model:
 
 4. `python train.py`
 
+### convert to tflite
+
+1. modify the model path in toos/convert_to_tflite.py
+
+2. `python  toos/convert_to_tflite.py`  it will produce converted_model.tflite
+
+3. CAUTION: the pretrained model shufflenentv2_1.0 is not ok with tflite, because the shuffle op,
+ but it was fixed, if u need 1.0 please retrain, or wait for me. 
 ### visualization
 
 ```

@@ -37,7 +37,8 @@ for i in range(100):
     interpreter.invoke()
     tflite_results = interpreter.get_tensor(output_details[2]['index'])
 
-print((time.time()-start)/100.)
+print('time cost:',(time.time()-start)/100.)
+print('tflite result')
 print(tflite_results)
 
 
@@ -46,4 +47,5 @@ print(tflite_results)
 
 model=tf.saved_model.load(saved_model_dir)
 tf_results = model.inference(tf.constant(input_data))
+print('tf result')
 print(tf_results['landmark'])
