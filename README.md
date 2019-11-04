@@ -122,9 +122,11 @@ python vis.py --model ./model/keypoints
   [faceboxes-tensorflow](https://github.com/610265158/faceboxes-tensorflow)
           
   [pappa_pig_face_engine](github.com/610265158/Peppa_Pig_Face_Engine)
+  
+- [x] tflite model    
 
+- [ ] Train with mobilenet
 
-- [ ] Train with mobilenet     
 
 
 
