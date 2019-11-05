@@ -109,16 +109,11 @@ class SimpleFace(tf.keras.Model):
         return res
 
     def preprocess(self, image):
-        # if image.dtype != tf.float32:
+
         image = tf.cast(image, tf.float32)
 
-        mean = cfg.DATA.PIXEL_MEAN
-        std = np.array(cfg.DATA.PIXEL_STD)
-
-        image_mean = tf.constant(mean, dtype=tf.float32)
-        image_invstd = tf.constant(1.0 / std, dtype=tf.float32)
-        image = (image - image_mean) * image_invstd
-
+        image /= 127.5
+        image -= 1.
         return image
 
 
