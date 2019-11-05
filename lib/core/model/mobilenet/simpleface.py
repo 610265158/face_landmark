@@ -1,16 +1,14 @@
 # -*-coding:utf-8-*-
 import sys
+
 sys.path.append('.')
 import tensorflow as tf
-# from tensorflow_core.python.keras.applications.mobilenet_v2 import MobileNetV2
+from tensorflow_core.python.keras.applications.mobilenet_v2 import MobileNetV2
 import math
 import numpy as np
 import time
 
 from train_config import config as cfg
-
-
-
 
 
 class MobileNet(tf.keras.Model):
@@ -19,28 +17,24 @@ class MobileNet(tf.keras.Model):
                  weights='imagenet'):
         super(MobileNet, self).__init__()
 
-        print(model_size)
-        self.base_model=tf.keras.applications.mobilenet_v2.MobileNetV2(input_shape=(cfg.MODEL.hin,cfg.MODEL.win,3),
-                                                          include_top=False,
-                                                          alpha=model_size,
-                                                          weights=weights)
+        base_model = tf.keras.applications.mobilenet_v2.MobileNetV2(input_shape=(cfg.MODEL.hin, cfg.MODEL.win, 3),
+                                                                    include_top=False,
+                                                                    alpha=model_size,
+                                                                    weights=weights)
 
+        base_model.summary()
 
+        layers_out = ["block_6_expand_relu", "block_13_expand_relu", "block_16_expand_relu"]
 
-        layers_out = ["block_6_expand_relu", "block_13_expand_relu", "out_relu"]
+        intermid_outputs = [base_model.get_layer(layer_name).output for layer_name in layers_out]
+        self.backbone_features = tf.keras.Model(inputs=base_model.input, outputs=intermid_outputs)
 
-        intermid_outputs = [ self.base_model.get_layer(layer_name).output for layer_name in layers_out]
-        self.backbone_features = tf.keras.Model(inputs= self.base_model.input, outputs=intermid_outputs)
+        self.backbone_features.summary()
 
-        self.base_model.summary()
-
-
-    def call(self,inputs,training):
-
+    def call(self, inputs, training):
         p0, p1, p2 = self.backbone_features(inputs, training=training)
 
-
-        return p0,p1,p2
+        return p0, p1, p2
 
 
 class SimpleFaceHead(tf.keras.Model):
@@ -49,15 +43,14 @@ class SimpleFaceHead(tf.keras.Model):
                  kernel_initializer='glorot_normal'):
         super(SimpleFaceHead, self).__init__()
 
-        self.output_size=output_size
+        self.output_size = output_size
 
-        self.dense=tf.keras.layers.Dense(self.output_size,
-                                         use_bias=True,
-                                         kernel_initializer=kernel_initializer )
+        self.dense = tf.keras.layers.Dense(self.output_size,
+                                           use_bias=True,
+                                           kernel_initializer=kernel_initializer)
 
     def call(self, inputs):
-
-        output=self.dense(inputs)
+        output = self.dense(inputs)
 
         return output
 
@@ -65,26 +58,23 @@ class SimpleFaceHead(tf.keras.Model):
 class SimpleFace(tf.keras.Model):
 
     def __init__(self,
-                 kernel_initializer='glorot_normal',):
+                 kernel_initializer='glorot_normal', ):
         super(SimpleFace, self).__init__()
 
-        model_size=float(cfg.MODEL.net_structure.split('_',1)[-1])
-        self.backbone=MobileNet(model_size)
+        model_size = float(cfg.MODEL.net_structure.split('_', 1)[-1])
+        self.backbone = MobileNet(model_size)
 
+        self.head = SimpleFaceHead(output_size=cfg.MODEL.out_channel,
+                                   kernel_initializer=kernel_initializer)
 
-
-        self.head=SimpleFaceHead(output_size=cfg.MODEL.out_channel,
-                                 kernel_initializer=kernel_initializer)
-
-        self.pool1=tf.keras.layers.GlobalAveragePooling2D()
+        self.pool1 = tf.keras.layers.GlobalAveragePooling2D()
         self.pool2 = tf.keras.layers.GlobalAveragePooling2D()
         self.pool3 = tf.keras.layers.GlobalAveragePooling2D()
 
-
-    #@tf.function
+    # @tf.function
     def call(self, inputs, training=False):
-        inputs=self.preprocess(inputs)
-        p0,p1,p2=self.backbone(inputs,training=training)
+        inputs = self.preprocess(inputs)
+        p0, p1, p2 = self.backbone(inputs, training=training)
 
         s1 = self.pool1(p0)
         s2 = self.pool2(p1)
@@ -92,16 +82,12 @@ class SimpleFace(tf.keras.Model):
 
         multi_scale = tf.concat([s1, s2, s3], 1)
 
-        out_put=self.head(multi_scale,training=training)
+        out_put = self.head(multi_scale, training=training)
 
         return out_put
 
-
-
-
-
-    @tf.function(input_signature=[tf.TensorSpec([None,cfg.MODEL.hin,cfg.MODEL.win,3], tf.float32)])
-    def inference(self,images):
+    @tf.function(input_signature=[tf.TensorSpec([None, cfg.MODEL.hin, cfg.MODEL.win, 3], tf.float32)])
+    def inference(self, images):
         inputs = self.preprocess(images)
         p0, p1, p2 = self.backbone(inputs, training=False)
 
@@ -112,22 +98,18 @@ class SimpleFace(tf.keras.Model):
 
         out_put = self.head(multi_scale, training=False)
 
+        landmark = out_put[:, :136]
+        headpose = out_put[:, :136:139]
+        cls = out_put[:, 139:]
 
-        landmark=out_put[:,:136]
-        headpose=out_put[:,:136:139]
-        cls=out_put[:,139:]
-
-        res={'landmark':landmark,
-             'headpose':headpose,
-             'cls':cls}
+        res = {'landmark': landmark,
+               'headpose': headpose,
+               'cls': cls}
 
         return res
 
-
-
-    def preprocess(self,image):
-
-        #if image.dtype != tf.float32:
+    def preprocess(self, image):
+        # if image.dtype != tf.float32:
         image = tf.cast(image, tf.float32)
 
         mean = cfg.DATA.PIXEL_MEAN
@@ -140,37 +122,23 @@ class SimpleFace(tf.keras.Model):
         return image
 
 
+if __name__ == '__main__':
 
-
-
-
-
-
-
-
-if __name__=='__main__':
-
+    import time
 
     model = SimpleFace()
 
-    image=np.zeros(shape=(1,160,160,3),dtype=np.float32)
+    image = np.zeros(shape=(1, 160, 160, 3), dtype=np.float32)
+    x = model.inference(image)
+    tf.saved_model.save(model, './model/keypoints')
+    start = time.time()
+    for i in range(100):
+        x = model.inference(image)
+
+    print('xxxyyyy', (time.time() - start) / 100.)
 
 
-    start=time.time()
-    for i in range(1000):
-        x=model.inference(image)
-
-    print((time.time()-start)/1000)
-    model.summary()
-
-
-
-
-
-
-
-
-def _wing_loss(landmarks, labels, w=10.0, epsilon=2.0,weights=1.):
+def _wing_loss(landmarks, labels, w=10.0, epsilon=2.0, weights=1.):
     """
     Arguments:
         landmarks, labels: float tensors with shape [batch_size, landmarks].  landmarks means x1,x2,x3,x4...y1,y2,y3,y4   1-D
@@ -187,65 +155,48 @@ def _wing_loss(landmarks, labels, w=10.0, epsilon=2.0,weights=1.):
         w * tf.math.log(1.0 + absolute_x / epsilon),
         absolute_x - c
     )
-    losses=losses*cfg.DATA.weights
-    loss = tf.reduce_sum(tf.reduce_mean(losses*weights, axis=[0]))
+    losses = losses * cfg.DATA.weights
+    loss = tf.reduce_sum(tf.reduce_mean(losses * weights, axis=[0]))
 
     return loss
 
-def _mse(landmarks, labels,weights=1.):
 
-    return tf.reduce_mean(0.5*tf.square(landmarks - labels)*weights)
+def _mse(landmarks, labels, weights=1.):
+    return tf.reduce_mean(0.5 * tf.square(landmarks - labels) * weights)
+
 
 def l1(landmarks, labels):
     return tf.reduce_mean(landmarks - labels)
 
-def calculate_loss(predict_keypoints, label_keypoints):
-    
 
-    landmark_label =      label_keypoints[:, 0:136]
-    pose_label =          label_keypoints[:, 136:139]
-    leye_cls_label =      label_keypoints[:, 139]
-    reye_cls_label =      label_keypoints[:, 140]
-    mouth_cls_label =     label_keypoints[:, 141]
+def calculate_loss(predict_keypoints, label_keypoints):
+    landmark_label = label_keypoints[:, 0:136]
+    pose_label = label_keypoints[:, 136:139]
+    leye_cls_label = label_keypoints[:, 139]
+    reye_cls_label = label_keypoints[:, 140]
+    mouth_cls_label = label_keypoints[:, 141]
     big_mouth_cls_label = label_keypoints[:, 142]
 
-
-    landmark_predict =     predict_keypoints[:, 0:136]
-    pose_predict =         predict_keypoints[:, 136:139]
-    leye_cls_predict =     predict_keypoints[:, 139]
-    reye_cls_predict =     predict_keypoints[:, 140]
-    mouth_cls_predict =     predict_keypoints[:, 141]
+    landmark_predict = predict_keypoints[:, 0:136]
+    pose_predict = predict_keypoints[:, 136:139]
+    leye_cls_predict = predict_keypoints[:, 139]
+    reye_cls_predict = predict_keypoints[:, 140]
+    mouth_cls_predict = predict_keypoints[:, 141]
     big_mouth_cls_predict = predict_keypoints[:, 142]
-
-
-
-
-
-
-
-
-
-
 
     loss = _wing_loss(landmark_predict, landmark_label)
 
     loss_pose = _mse(pose_predict, pose_label)
 
-
-
     leye_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=leye_cls_predict,
-                                                                      labels=leye_cls_label) )
+                                                                       labels=leye_cls_label))
     reye_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=reye_cls_predict,
-                                                                      labels=reye_cls_label))
+                                                                       labels=reye_cls_label))
     mouth_loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=mouth_cls_predict,
-                                                                       labels=mouth_cls_label))
+                                                                        labels=mouth_cls_label))
     mouth_loss_big = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=big_mouth_cls_predict,
-                                                                        labels=big_mouth_cls_label))
-    mouth_loss=mouth_loss+mouth_loss_big
-
-
-
-
+                                                                            labels=big_mouth_cls_label))
+    mouth_loss = mouth_loss + mouth_loss_big
 
     # ##make crosssentropy
     # leye_cla_correct_prediction = tf.equal(
@@ -262,8 +213,6 @@ def calculate_loss(predict_keypoints, label_keypoints):
     #     tf.cast(mouth_cla_label, tf.int32))
     # mouth_cla_accuracy = tf.reduce_mean(tf.cast(mouth_cla_correct_prediction, tf.float32))
 
-
-
     #### l2 regularization_losses
     # l2_loss = []
     # l2_reg = tf.keras.regularizers.l2(cfg.TRAIN.weight_decay_factor)
@@ -273,7 +222,6 @@ def calculate_loss(predict_keypoints, label_keypoints):
     #         l2_loss.append(l2_reg(var))
     # regularization_losses = tf.add_n(l2_loss, name='l1_loss')
 
-
-    return loss+loss_pose+leye_loss+reye_loss+mouth_loss
+    return loss + loss_pose + leye_loss + reye_loss + mouth_loss
 
 
