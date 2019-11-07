@@ -31,6 +31,7 @@ pretrained model:
 + [baidu disk](https://pan.baidu.com/s/1JxZ9nhFpWCAv5A44yUEcOA)  (code fcdc)
 + [google drive](https://drive.google.com/open?id=1VAJ8qObyRfLmpimoZA6QwrhXjQmgwBXn)
 
++ time const: on mac i5-8279U@2.4GHz， 5ms+， tflite 3.7ms+-
 
 
 
