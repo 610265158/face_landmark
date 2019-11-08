@@ -49,7 +49,48 @@ def vis(model):
         cv2.imshow('tmp',img_show)
         cv2.waitKey(0)
 
+def vis_tflite(model):
 
+    ###build model
+    # 加载 TFLite 模型并分配张量（tensor）。
+    interpreter = tf.lite.Interpreter(model_path=model)
+    interpreter.allocate_tensors()
+
+    # 获取输入和输出张量。
+    input_details = interpreter.get_input_details()
+    output_details = interpreter.get_output_details()
+
+    for images, labels in train_dataset:
+        img_show = np.array(images)
+
+        images=np.expand_dims(images,axis=0)
+        start=time.time()
+
+        interpreter.set_tensor(input_details[0]['index'], images)
+
+        interpreter.invoke()
+
+        tflite_res = interpreter.get_tensor(output_details[2]['index'])
+
+
+        print('xxxx',time.time()-start)
+        #print(res)
+
+        img_show=img_show.astype(np.uint8)
+
+        img_show=cv2.cvtColor(img_show, cv2.COLOR_BGR2RGB)
+
+        landmark = np.array(tflite_res).reshape([-1, 2])
+
+        for _index in range(landmark.shape[0]):
+            x_y = landmark[_index]
+            #print(x_y)
+            cv2.circle(img_show, center=(int(x_y[0] * 160),
+                                         int(x_y[1] * 160)),
+                       color=(255, 122, 122), radius=1, thickness=2)
+
+        cv2.imshow('tmp',img_show)
+        cv2.waitKey(0)
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser(description='Start train.')
@@ -59,7 +100,11 @@ if __name__=='__main__':
 
     args = parser.parse_args()
 
-    vis(args.model)
+
+    if 'lite' in args.model:
+        vis_tflite(args.model)
+    else:
+        vis(args.model)
 
 
 

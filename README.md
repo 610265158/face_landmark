@@ -110,8 +110,8 @@ pretrained model:
 ### visualization
 
 ```
-python vis.py --model ./model/keypoints
-
+python vis.py --model ./model/keypoints  
+or python vis.py --model ./model/keypoints.tflite  (need conver to tflite first) 
 ```
 
 ### TODO: 
