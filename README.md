@@ -125,7 +125,7 @@ or python vis.py --model ./model/keypoints.tflite  (need conver to tflite first)
   
 - [x] tflite model    
 
-- [ ] Train with mobilenet
+
 
 
 
