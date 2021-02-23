@@ -1,4 +1,4 @@
-#Note: planning to port the codes to pytorch, hope clean codes may help us.
+# Note: planning to port the codes to pytorch, hope clean codes may help us.
 
 # face_landmark
 A simple face aligment method, based on tensorflow2.0
