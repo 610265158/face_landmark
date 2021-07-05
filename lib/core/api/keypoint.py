@@ -7,23 +7,16 @@ import time
 from lib.helper.init import init
 from train_config import config
 
+from lib.core.model.face_model import Net
 
 class Keypoints:
 
-    def __init__(self,pb):
+    def __init__(self,model_path):
         self.PADDING_FLAG=True
         self.ANCHOR_SIZE=0
-        self._pb_path=pb
+        self.model_path=model_path
 
-        self._graph = tf.Graph()
-        self._sess = tf.Session(graph=self._graph)
-
-        with self._graph.as_default():
-
-            self._graph, self._sess = init(self._pb_path)
-            self.img_input = tf.get_default_graph().get_tensor_by_name('tower_0/images:0')
-            self.embeddings_keypoints = tf.get_default_graph().get_tensor_by_name('tower_0/prediction:0')
-            self.training = tf.get_default_graph().get_tensor_by_name('training_flag:0')
+        self.model=Net().
 
 
     def simple_run(self,img):
@@ -82,4 +75,11 @@ class Keypoints:
         crop_image = bimg[bbox[1]:bbox[3], bbox[0]:bbox[2], :]
         crop_image = cv2.resize(crop_image, (config.MODEL.hin, config.MODEL.win),
                                   interpolation=cv2.INTER_AREA)
+
+
+        if config.MODEL.channel==1:
+            crop_image=cv2.cvtColor(crop_image,cv2.COLOR_RGB2GRAY)
+            crop_image=np.expand_dims(crop_image,axis=-1)
+
+
         return crop_image

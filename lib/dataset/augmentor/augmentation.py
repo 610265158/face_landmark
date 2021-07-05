@@ -29,14 +29,14 @@ def Rotate_aug(src,angle,label=None,center=None,scale=1.0):
             image[:,:,i] = cv2.warpAffine(image[:,:,i], M, (w, h),
                                           flags=cv2.INTER_CUBIC,
                                           borderMode=cv2.BORDER_CONSTANT,
-                                          borderValue=cfg.DATA.PIXEL_MEAN)
+                                          borderValue=0)
         return image,None
     else:
         label=label.T
         ####make it as a 3x3 RT matrix
         full_M=np.row_stack((M,np.asarray([0,0,1])))
         img_rotated = cv2.warpAffine(image, M, (w, h), flags=cv2.INTER_CUBIC,
-                                     borderMode=cv2.BORDER_CONSTANT, borderValue=cfg.DATA.PIXEL_MEAN)
+                                     borderMode=cv2.BORDER_CONSTANT, borderValue=0)
         ###make the label as 3xN matrix
         full_label = np.row_stack((label, np.ones(shape=(1,label.shape[1]))))
         label_rotated=np.dot(full_M,full_label)
@@ -162,7 +162,7 @@ def Affine_aug(src,strength,label=None):
     M = cv2.getAffineTransform(pts1, pts_base)
     trans_img = cv2.warpAffine(image, M, (image.shape[1], image.shape[0]) ,
                                             borderMode=cv2.BORDER_CONSTANT,
-                                          borderValue=cfg.DATA.PIXEL_MEAN)
+                                          borderValue=0)
     label_rotated=None
     if label is not None:
         label=label.T
@@ -190,7 +190,7 @@ def Padding_aug(src,max_pattern_ratio=0.05):
             pattern[:,width-int(ratio * width):,  :] = 0
 
 
-    bias_pattern=(1-pattern)*cfg.DATA.PIXEL_MEAN
+    bias_pattern=(1-pattern)
 
 
     img=src*pattern+bias_pattern
@@ -221,7 +221,7 @@ def Img_dropout(src,max_pattern_ratio=0.05):
     width_end=int(width_start+block_width)
     height_start=int(random.uniform(0,height-block_height))
     height_end=int(height_start+block_height)
-    src[height_start:height_end,width_start:width_end,:]=np.array(cfg.DATA.PIXEL_MEAN,dtype=src.dtype)
+    src[height_start:height_end,width_start:width_end,:]=np.array(0,dtype=src.dtype)
 
     return src
 
@@ -233,14 +233,14 @@ def Fill_img(img_raw,target_height,target_width,label=None):
     raw_width = img_raw.shape[1]
     if raw_width / raw_height >= target_width / target_height:
         shape_need = [int(target_height / target_width * raw_width), raw_width, channel]
-        img_fill = np.zeros(shape_need, dtype=img_raw.dtype)+np.array(cfg.DATA.PIXEL_MEAN ,dtype=img_raw.dtype)
+        img_fill = np.zeros(shape_need, dtype=img_raw.dtype)
         shift_x=(img_fill.shape[1]-raw_width)//2
         shift_y=(img_fill.shape[0]-raw_height)//2
         for i in range(channel):
             img_fill[shift_y:raw_height+shift_y, shift_x:raw_width+shift_x, i] = img_raw[:,:,i]
     else:
         shape_need = [raw_height, int(target_width / target_height * raw_height), channel]
-        img_fill = np.zeros(shape_need, dtype=img_raw.dtype)+np.array(cfg.DATA.PIXEL_MEAN ,dtype=img_raw.dtype)
+        img_fill = np.zeros(shape_need, dtype=img_raw.dtype)
         shift_x = (img_fill.shape[1] - raw_width) // 2
         shift_y = (img_fill.shape[0] - raw_height) // 2
         for i in range(channel):

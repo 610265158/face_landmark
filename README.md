@@ -1,11 +1,9 @@
-# Note: planning to port the codes to pytorch, hope clean codes may help us.
-
 # face_landmark
-A simple face aligment method, based on tensorflow2.0
+A simple face aligment method, based on pytorch
 
 
 ## introduction
-This is the tensorflow2.0 branch, if u need to work on tf1 switch to branch tf1, it still work.
+This is the pytorch branch.
  
 It is simple and flexible, trained with wingloss , multi task learning, also with data augmentation based on headpose and face attributes(eyes state and mouth state).
 
@@ -21,24 +19,18 @@ demo pictures:
 
 ![gifs](https://github.com/610265158/Peppa_Pig_Face_Engine/blob/master/figure/sample.gif)
 
-this gif is from github.com/610265158/Peppa_Pig_Face_Engine, but it is the same model : )
+this gif is from github.com/610265158/Peppa_Pig_Face_Engine )
 
 pretrained model:
 
-###### shufflenetv2_1.0   tflite is not ok, retrain is needed, sad, i need more time.
-+ [baidu disk](https://pan.baidu.com/s/1uuPnrF7h228gLLdf2JTqLQ)  (code rt7p)
-+ [google drive](https://drive.google.com/open?id=1Zy5hG7AL69zym4EGwkprW9INnj_5P9a0)
-
-###### shufflenetv2_0.75   including tflite model, (time cost: mac i5-8279U@2.4GHz， tf2.0 5ms+， tflite 3.7ms+-)
-+ [baidu disk](https://pan.baidu.com/s/1JxZ9nhFpWCAv5A44yUEcOA)  (code fcdc)
-+ [google drive](https://drive.google.com/open?id=1VAJ8qObyRfLmpimoZA6QwrhXjQmgwBXn)
-
+###### shufflenetv2_1.0  
++ [baidu disk](https://pan.baidu.com/s/1MK3wI0nrZUOA8yU0ChWvBw)  (code 9x2m)
 
 
 
 ## requirment
 
-+ tensorflow2.0
++ pytorch
 
 + tensorpack (for data provider)
 
@@ -79,53 +71,13 @@ pretrained model:
 
 4. by default it trained with shufflenetv2_1.0
 
-### finetune
 
-1. download the pretrained model keypoints, put it into ./model
-   and the model dir structure is :
-   
-  ```
-   ./model/
-    └── keypoints
-        ├── saved_model.pb
-        └── variables
-            ├── variables.data-00000-of-00002
-            ├── variables.data-00001-of-00002
-            └── variables.index
-
-  ```
-
-2. set config.MODEL.pretrained_model='./model/keypoints/variables/variables', in train_config.py
-
-3. adjust the lr policy
-
-4. `python train.py`
-
-### convert to tflite
-
-1. modify the model path in toos/convert_to_tflite.py
-
-2. `python  toos/convert_to_tflite.py`  it will produce converted_model.tflite
-
-3. CAUTION: the pretrained model shufflenentv2_1.0 is not ok with tflite, because the shuffle op,
- but it was fixed, if u need 1.0 please retrain, or wait for me. 
 ### visualization
 
 ```
-python vis.py --model ./model/keypoints  
-or python vis.py --model ./model/keypoints.tflite  (need conver to tflite first) 
+python vis.py --model ./model/keypoints.pth
 ```
 
-### TODO: 
-- [x] A face detector is needed.
-
-  [dsfd_tensorflow](https://github.com/610265158/DSFD-tensorflow)
-  
-  [faceboxes-tensorflow](https://github.com/610265158/faceboxes-tensorflow)
-          
-  [pappa_pig_face_engine](github.com/610265158/Peppa_Pig_Face_Engine)
-  
-- [x] tflite model    
 
 
 

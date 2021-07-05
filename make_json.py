@@ -3,6 +3,7 @@ import random
 import numpy as np
 import json
 import traceback
+import cv2
 
 from tqdm import tqdm
 '''
@@ -13,14 +14,16 @@ i decide to merge more data from CelebA, the data anns will be complex, so json 
 
 
 
-data_dir='300W'      ########points to your director,300w
+data_dir='/media/lz/ssd_2/coco_data/facelandmark/PUB'      ########points to your director,300w
 #celeba_data_dir='CELEBA'                      ########points to your director,CELEBA
 
 
-train_json='train.json'
-val_json='val.json'
+train_json='./train.json'
+val_json='./val.json'
+save_dir='../tmp_crop_data_face_landmark_pytorch'
 
-
+if not os.access(save_dir,os.F_OK):
+    os.mkdir(save_dir)
 
 def GetFileList(dir, fileList):
     newDir = dir
@@ -52,180 +55,131 @@ val_list=pic_list[int(ratio*len(pic_list)):]
 # val_list=[x for x in pic_list if '300W/' in x]
 
 
-train_json_list=[]
-for pic in tqdm(train_list):
-    one_image_ann={}
-
-    ### image_path
-    one_image_ann['image_path']=pic
-
-    #### keypoints
-    pts=pic.rsplit('.',1)[0]+'.pts'
-    if os.access(pic,os.F_OK) and  os.access(pts,os.F_OK):
-        try:
-            tmp=[]
-            with open(pts) as p_f:
-                labels=p_f.readlines()[3:-1]
-            for _one_p in labels:
-                xy = _one_p.rstrip().split(' ')
-                tmp.append([float(xy[0]),float(xy[1])])
-
-            one_image_ann['keypoints'] = tmp
-
-            label = np.array(tmp).reshape((-1, 2))
-            bbox = [float(np.min(label[:, 0])), float(np.min(label[:, 1])), float(np.max(label[:, 0])), float(np.max(label[:, 1]))]
-            one_image_ann['bbox'] = bbox
-            
-            
-            ### placeholder
-            one_image_ann['attr'] = None
-    
-            train_json_list.append(one_image_ann)
-        except:
-            print(pic)
-            traceback.print_exc()
-
-   
-
-with open(train_json,'w') as f:
-    json.dump(train_json_list, f,indent=2)
+def process_data(data_list,json_nm):
 
 
-val_json_list=[]
-for pic in tqdm(val_list):
-    one_image_ann={}
+    global cnt
+    json_list=[]
 
-    ### image_path
-    one_image_ann['image_path']=pic
+    for pic in tqdm(data_list):
+        one_image_ann={}
 
-    #### keypoints
-    pts=pic.rsplit('.',1)[0]+'.pts'
-    if os.access(pic,os.F_OK) and  os.access(pts,os.F_OK):
-        try:
-            tmp=[]
-            with open(pts) as p_f:
-                labels=p_f.readlines()[3:-1]
-            for _one_p in labels:
-                xy = _one_p.rstrip().split(' ')
-                tmp.append([float(xy[0]),float(xy[1])])
+        ### image_path
+        one_image_ann['image_path_raw']=pic
 
-            one_image_ann['keypoints'] = tmp
+        #### keypoints
+        pts=pic.rsplit('.',1)[0]+'.pts'
+        if os.access(pic,os.F_OK) and  os.access(pts,os.F_OK):
+            try:
+                tmp=[]
+                with open(pts) as p_f:
+                    labels=p_f.readlines()[3:-1]
+                for _one_p in labels:
+                    xy = _one_p.rstrip().split(' ')
+                    tmp.append([float(xy[0]),float(xy[1])])
 
+                one_image_ann['keypoints'] = tmp
 
-            label = np.array(tmp).reshape((-1, 2))
-            bbox = [float(np.min(label[:, 0])), float(np.min(label[:, 1])), float(np.max(label[:, 0])), float(np.max(label[:, 1]))]
-            one_image_ann['bbox'] = bbox
-            ### placeholder
-            one_image_ann['attr'] = None
+                label = np.array(tmp).reshape((-1, 2))
+                bbox = [float(np.min(label[:, 0])), float(np.min(label[:, 1])), float(np.max(label[:, 0])), float(np.max(label[:, 1]))]
+                one_image_ann['bbox'] = bbox
 
-            val_json_list.append(one_image_ann)
-
-        except:
-            print(pic)
+                ### placeholder
+                one_image_ann['attr'] = None
 
 
-    
-
-with open(val_json,'w') as f:
-    json.dump(val_json_list, f,indent=2)
+                ###### crop it
 
 
 
+                image=cv2.imread(one_image_ann['image_path_raw'],cv2.IMREAD_COLOR)
+
+                h,w,c=image.shape
+
+                ##expanded for
+                bbox_int = [int(x) for x in bbox]
+                bbox_width = bbox_int[2] - bbox_int[0]
+                bbox_height = bbox_int[3] - bbox_int[1]
+
+                center_x=(bbox_int[2] + bbox_int[0])//2
+                center_y=(bbox_int[3] + bbox_int[1])//2
+
+                x1=int(center_x-bbox_width)
+                x1=x1 if x1>=0 else 0
+
+                y1 = int(center_y - bbox_height)
+                y1 = y1 if y1 >= 0 else 0
+
+                x2 = int(center_x + bbox_width)
+                x2 = x2 if x2 <w else w
+
+                y2 = int(center_y + bbox_height)
+                y2 = y2 if y2 <h else h
+
+                crop_face=image[y1:y2,x1:x2,...]
+
+
+
+                fname= one_image_ann['image_path_raw'].split('PUB/')[-1]
+
+                fname=fname.replace('/','_').replace('/','_')
+
+                one_image_ann['image_name']=os.path.join(save_dir,fname)
+                # cv2.imwrite(one_image_ann['image_name'],crop_face)
+
+
+                one_image_ann['bbox'][0] -= x1
+                one_image_ann['bbox'][1] -= y1
+                one_image_ann['bbox'][2] -= x1
+                one_image_ann['bbox'][3] -= y1
+
+                for i in range(len(one_image_ann['keypoints'])):
+                    one_image_ann['keypoints'][i][0]-=x1
+                    one_image_ann['keypoints'][i][1]-=y1
+
+
+
+                # [x1,y1,x2,y2]=[int(x) for x in one_image_ann['bbox']]
+                #
+                # cv2.rectangle(crop_face,(x1,y1),(x2,y2),thickness=2,color=(255,0,0))
+                #
+                # landmark=np.array(one_image_ann['keypoints'])
+                #
+                # for _index in range(landmark.shape[0]):
+                #     x_y = landmark[_index]
+                #     # print(x_y)
+                #     cv2.circle(crop_face, center=(int(x_y[0] ),
+                #                                  int(x_y[1] )),
+                #                color=(255, 0, 0), radius=2, thickness=4)
+                #
+                #
+                # cv2.imshow('ss', crop_face)
+                # cv2.waitKey(0)
 
 
 
 
 
-#
-# ################# to process the CELEBA
-#
-# ann_dir=os.path.join(celeba_data_dir,'Anno')
-# bbox_ann=ann_dir=os.path.join(ann_dir,'list_attr_celeba.txt')
-#
-#
-# with open(bbox_ann) as p_f:
-#     lines = p_f.readlines()[2:]
-#
-#
-#
-#
-# '''
-# 5_o_Clock_Shadow 22516 180083
-# Arched_Eyebrows 54090 148509
-# Attractive 103833 98766
-# Bags_Under_Eyes 41446 161153
-# Bald 4547 198052
-# Bangs 30709 171890
-# Big_Lips 48785 153814
-# Big_Nose 47516 155083
-# Black_Hair 48472 154127
-# Blond_Hair 29983 172616
-# Blurry 10312 192287
-# Brown_Hair 41572 161027
-# Bushy_Eyebrows 28803 173796
-# Chubby 11663 190936
-# Double_Chin 9459 193140
-# Eyeglasses 13193 189406
-# Goatee 12716 189883
-# Gray_Hair 8499 194100
-# Heavy_Makeup 78390 124209
-# High_Cheekbones 92189 110410
-# Male 84437 118162
-# Mouth_Slightly_Open 97942 104657
-# Mustache 8417 194182
-# Narrow_Eyes 23329 179270
-# No_Beard 169158 33441
-# Oval_Face 57567 145032
-# Pale_Skin 8701 193898
-# Pointy_Nose 56210 146389
-# Receding_Hairline 16163 186436
-# Rosy_Cheeks 13315 189284
-# Sideburns 11449 191150
-# Smiling 97669 104930
-# Straight_Hair 42222 160377
-# Wavy_Hair 64744 137855
-# Wearing_Earrings 38276 164323
-# Wearing_Hat 9818 192781
-# Wearing_Lipstick 95715 106884
-# Wearing_Necklace 24913 177686
-# Wearing_Necktie 14732 187867
-# Young 156734 45865
-# '''
-#
-#
-#
-# with open(train_json,'r') as f:
-#     train_json_list=json.load(f)
-# for line in lines:
-#     one_image_ann={}
-#     ann=line.rstrip().split(' ')
-#     ann=[x for x in ann if  x != '']
-#     one_image_ann['image_path']=os.path.join(celeba_data_dir,'Img','img_align_celeba',ann[0])
-#
-#
-#     one_image_ann['bbox']=[40,80,135,185]
-#     one_image_ann['keypoints']=None
-#
-#     ##we select some attr, eyeglasses, gender and smile
-#
-#     eyeglasses = 0 if int(ann[16]) < 0 else 1
-#     gender=0 if int(ann[21])<0 else 1
-#     Mouth_Slightly_Open=0 if int(ann[22])<0 else 1
-#     smile = 0 if int(ann[32]) < 0 else 1
-#
-#
-#     one_image_ann['attr']=[eyeglasses,gender,Mouth_Slightly_Open,smile]
-#
-#
-#
-#     train_json_list.append(one_image_ann)
-#
-#
-#
-#
-#
-# with open(train_json,'w') as f:
-#     json.dump(train_json_list, f,indent=2)
+                json_list.append(one_image_ann)
+            except:
+                print(pic)
+
+                print(traceback.print_exc())
+
+
+    with open(json_nm, 'w') as f:
+        json.dump(json_list, f, indent=2)
+
+
+process_data(train_list,train_json)
+
+
+process_data(val_list,val_json)
+
+
+
+
+
 
 
 

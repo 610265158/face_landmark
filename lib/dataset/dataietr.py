@@ -5,9 +5,12 @@ import cv2
 import json
 import numpy as np
 import copy
+from tqdm import tqdm
+import albumentations as A
+
 
 from lib.helper.logger import logger
-from tensorpack.dataflow import DataFromGenerator,BatchData, MultiProcessPrefetchData
+
 
 
 
@@ -46,57 +49,6 @@ class data_info(object):
         random.shuffle(self.metas)
         return self.metas
 #
-#
-class DataIter():
-    def __init__(self,img_root_path='',ann_file=None,training_flag=True):
-
-        self.shuffle=True
-        self.training_flag=training_flag
-        self.num_gpu = cfg.TRAIN.num_gpu
-        self.batch_size = cfg.TRAIN.batch_size
-        self.process_num = cfg.TRAIN.process_num
-        self.prefetch_size = cfg.TRAIN.prefetch_size
-
-        self.generator = FaceKeypointDataIter(img_root_path, ann_file, self.training_flag)
-
-        self.ds=self.build_iter()
-
-        self.size = self.__len__()
-
-
-    def parse_file(self,im_root_path,ann_file):
-
-        raise NotImplementedError("you need implemented the parse func for your data")
-
-
-    def build_iter(self):
-
-        ds = DataFromGenerator(self.generator)
-        ds = BatchData(ds, self.batch_size)
-        ds = MultiProcessPrefetchData(ds, self.prefetch_size, self.process_num)
-        ds.reset_state()
-        ds = ds.get_data()
-        return ds
-
-    def __iter__(self):
-        return self
-
-    def __call__(self, *args, **kwargs):
-
-
-
-        for i in range(self.size):
-            one_batch=next(self.ds)
-            yield one_batch[0],one_batch[1]
-
-    def __len__(self):
-        return len(self.generator)//self.batch_size
-
-    def _map_func(self,dp,is_training):
-
-        raise NotImplementedError("you need implemented the map func for your data")
-
-
 
 
 class FaceKeypointDataIter():
@@ -119,20 +71,25 @@ class FaceKeypointDataIter():
 
         self.lst = self.parse_file(img_root_path, ann_file)
 
+        # self.train_trans = A.Compose([
+        #
+        #     A.ShiftScaleRotate(shift_limit=0.1,
+        #                        scale_limit=0.1,
+        #                        rotate_limit=45,
+        #                        p=0.8),
+        #
+        #     A.HorizontalFlip(p=0.5),
+        #     A.RandomBrightnessContrast(contrast_limit=0.2,brightness_limit=0.2,p=0.5),
+        #     A.CoarseDropout(max_holes=8,max_width=12,max_height=12,p)
+        #
+        #
+        # ])
 
 
+    def __getitem__(self, item):
 
+        return self._map_func(self.lst[item], self.training_flag)
 
-
-
-    def __call__(self, *args, **kwargs):
-        idxs = np.arange(len(self.lst))
-
-        # while True:
-        if self.shuffle:
-            np.random.shuffle(idxs)
-        for k in idxs:
-            yield self._map_func(self.lst[k], self.training_flag)
 
     def __len__(self):
         assert self.raw_data_set_size is not None
@@ -143,7 +100,7 @@ class FaceKeypointDataIter():
         res_anns = copy.deepcopy(anns)
 
         lar_count = 0
-        for ann in anns:
+        for ann in tqdm(anns):
 
             ### 300w  balance,  according to keypoints
             if ann['keypoints'] is not None:
@@ -217,7 +174,7 @@ class FaceKeypointDataIter():
         :return:
         '''
         logger.info("[x] Get dataset from {}".format(im_root_path))
-
+        logger.info(" analysis the data")
         ann_info = data_info(im_root_path, ann_file)
         all_samples = ann_info.get_all_sample()
         self.raw_data_set_size=len(all_samples)
@@ -227,9 +184,13 @@ class FaceKeypointDataIter():
     def augmentationCropImage(self,img, bbox, joints=None, is_training=True):
 
         bbox = np.array(bbox).reshape(4, ).astype(np.float32)
-        add = max(img.shape[0], img.shape[1])
 
-        bimg = cv2.copyMakeBorder(img, add, add, add, add, borderType=cv2.BORDER_CONSTANT, value=cfg.DATA.PIXEL_MEAN)
+        gt_width = (bbox[2] - bbox[0])
+        gt_height = (bbox[3] - bbox[1])
+
+        add = int(max(gt_width, gt_height))
+
+        bimg = cv2.copyMakeBorder(img, add, add, add, add, borderType=cv2.BORDER_CONSTANT, value=0)
 
         objcenter = np.array([(bbox[0] + bbox[2]) / 2., (bbox[1] + bbox[3]) / 2.])
         bbox += add
@@ -237,8 +198,8 @@ class FaceKeypointDataIter():
 
         joints[:, :2] += add
 
-        gt_width = (bbox[2] - bbox[0])
-        gt_height = (bbox[3] - bbox[1])
+        # gt_width = (bbox[2] - bbox[0])
+        # gt_height = (bbox[3] - bbox[1])
 
         crop_width_half = gt_width * (1 + cfg.DATA.base_extend_range[0] * 2) // 2
         crop_height_half = gt_height * (1 + cfg.DATA.base_extend_range[1] * 2) // 2
@@ -280,11 +241,10 @@ class FaceKeypointDataIter():
     def _map_func(self,dp,is_training):
         """Data augmentation function."""
         ####customed here
-        fname= dp['image_path']
+        fname= dp['image_name']
         keypoints=dp['keypoints']
         bbox =dp['bbox']
         # attr =dp['attr']
-
 
         #### 300W
         if keypoints is not None:
@@ -356,7 +316,6 @@ class FaceKeypointDataIter():
 
             label = label.astype(np.float32)
 
-
             label[:, 0] = label[:, 0] / crop_image_width
             label[:, 1] = label[:, 1] / crop_image_height
 
@@ -367,48 +326,5 @@ class FaceKeypointDataIter():
 
             label = np.concatenate([label, PRY, cla_label], axis=0)
 
-
-        # else:
-        #     image = cv2.imread(fname, cv2.IMREAD_COLOR)
-        #     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        #
-        #     bbox = np.array(bbox)
-        #
-        #     ### random crop and resize
-        #     crop_image, _ = self.augmentationCropImage(image, bbox, np.array([[0,0]], dtype=np.float).reshape((-1, 2)), is_training)
-        #
-        #     if is_training:
-        #
-        #         if random.uniform(0, 1) > 0.5:
-        #             crop_image, _ = Mirror(crop_image, label=None, symmetry=None)
-        #         if random.uniform(0, 1) > 0.0:
-        #             angle = random.uniform(-45, 45)
-        #             crop_image, _ = Rotate_aug(crop_image, label=None, angle=angle)
-        #
-        #         if random.uniform(0, 1) > 0.5:
-        #             strength = random.uniform(0, 50)
-        #             crop_image, _ = Affine_aug(crop_image, strength=strength, label=None)
-        #
-        #         if random.uniform(0, 1) > 0.5:
-        #             crop_image = self.color_augmentor(crop_image)
-        #         if random.uniform(0, 1) > 0.5:
-        #             crop_image = pixel_jitter(crop_image, 15)
-        #         if random.uniform(0, 1) > 0.5:
-        #             crop_image = Img_dropout(crop_image, 0.2)
-        #
-        #         if random.uniform(0, 1) > 0.5:
-        #             crop_image = Padding_aug(crop_image, 0.3)
-        #
-        #     #######head pose
-        #
-        #     crop_image = crop_image.astype(np.float32)
-        #
-        #     label=np.zeros(shape=cfg.MODEL.out_channel-2)-1
-        #     label[-4:]=np.array(attr)
-        #
-        #     ### index 0 means things come from keypoints, 1 is from celeba
-        #     weights = np.array([0, 1])
-        #
-        #     label = np.concatenate([label, weights], axis=0)
-
+        crop_image=np.transpose(crop_image,[2,0,1]).astype(np.uint8)
         return crop_image, label
