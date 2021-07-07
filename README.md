@@ -1,11 +1,16 @@
 # face_landmark
-A simple face aligment method, based on pytorch
+
+A simple face aligment method.
 
 
 ## introduction
-This is the pytorch branch.
- 
-It is simple and flexible, trained with wingloss , multi task learning, also with data augmentation based on headpose and face attributes(eyes state and mouth state).
+This is the pytorch branch. The tf version is no longer maintained. 
+
+It is simple and flexible, 
+trained with **wingloss** , 
+**multi task learning**, 
+
+also with **data augmentation based on headpose and face attributes(eyes state and mouth state)**.
 
 [CN blog](https://blog.csdn.net/qq_35606924/article/details/99711208)
 
@@ -23,7 +28,8 @@ this gif is from github.com/610265158/Peppa_Pig_Face_Engine )
 
 pretrained model:
 
-###### shufflenetv2_1.0  
+###### shufflenetv2_1.0
+
 + [baidu disk](https://pan.baidu.com/s/1MK3wI0nrZUOA8yU0ChWvBw)  (code 9x2m)
 
 
@@ -32,52 +38,25 @@ pretrained model:
 
 + pytorch
 
-+ tensorpack (for data provider)
-
 + opencv
 
-+ python 3.6
++ python 3.7
 
 
 ## useage
 
 ### train
 
-1. download all the [300W](https://ibug.doc.ic.ac.uk/resources/facial-point-annotations/) data set including the [300VW](https://ibug.doc.ic.ac.uk/resources/300-VW/)(parse as images, and make the label the same formate as 300W)
-```
-├── 300VW
-│   ├── 001_annot
-│   ├── 002_annot
-│       ....
-├── 300W
-│   ├── 01_Indoor
-│   └── 02_Outdoor
-├── AFW
-│   └── afw
-├── HELEN
-│   ├── testset
-│   └── trainset
-├── IBUG
-│   └── ibug
-├── LFPW
-│   ├── testset
-│   └── trainset
-```
-
-2. run ` python make_json.py` produce train.json and val.json
-(if u like train u own data, please read the json produced , it is quite simple)
-
+1. I have made a new 68points dataset that collect from 300W and 300VW. Please download from [HERE]()
 3. then, run:  `python train.py`
 
-4. by default it trained with shufflenetv2_1.0
-
+4. by default it trained with mobilenetv3
 
 ### visualization
 
 ```
 python vis.py --model ./model/keypoints.pth
 ```
-
 
 
 

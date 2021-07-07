@@ -18,7 +18,6 @@ config.TRAIN.epoch = 40
 config.TRAIN.init_lr= 0.0001
 
 
-
 config.TRAIN.weight_decay_factor = 5.e-5                                    ####l2
 
 config.TRAIN.vis=False                                                      #### if to check the training data
@@ -33,7 +32,7 @@ config.MODEL.channel = 1
 config.MODEL.out_channel=136+3+4    # output vector    68 points , 3 headpose ,4 cls params,(left eye, right eye, mouth, big mouth open)
 
 config.MODEL.net_structure='MobileNetv3'
-config.MODEL.pretrained_model='./models/epoch_32_val_loss3.689775.pth'
+config.MODEL.pretrained_model=None
 config.DATA = edict()
 
 config.DATA.root_path=''
@@ -67,8 +66,6 @@ weights_xy=[[x,x] for x in weights]
 config.DATA.weights = np.array(weights_xy,dtype=np.float32).reshape([-1])
 
 
-config.MODEL.pruning=False               ## pruning flag  add l1 reg to bn/beta, no use for tmp
-config.MODEL.pruning_bn_reg=0.00005
 
 
 
