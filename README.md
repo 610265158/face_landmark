@@ -1,4 +1,4 @@
-# Note: planning to port the codes to pytorch, hope clean codes may help us.
+# Note: This code is not maintained. Please refer to [Peppa_Pig_Face_Landmark](https://github.com/610265158/Peppa_Pig_Face_Landmark), The TRAIN subdir.There is better model.
 
 # face_landmark
 A simple face aligment method, based on tensorflow2.0
